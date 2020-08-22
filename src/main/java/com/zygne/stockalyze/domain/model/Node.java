@@ -6,16 +6,17 @@ public class Node implements Comparable{
     public int pull;
     public boolean origin;
     public double probability;
+    public double change;
+    public double prediction;
     public String note = "";
-
 
     @Override
     public int compareTo(Object o) {
-        int levelb = ((Node)o).level;
+        int levelB = ((Node)o).level;
 
-        if(level < levelb){
+        if(level < levelB){
             return 1;
-        } else if(level == levelb){
+        } else if(level == levelB){
             return 0;
         }
 

@@ -1,7 +1,10 @@
 package com.zygne.stockalyze.domain;
 
 import com.zygne.stockalyze.domain.interactor.implementation.data.*;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.NewsBiasInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.PredictionInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.TrendBiasInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.ProbabilityInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.stats.StatisticsInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.stats.ScoreInteractor;
 import com.zygne.stockalyze.domain.model.*;
@@ -20,59 +23,57 @@ public class App implements
         HighestSupportInteractor.Callback,
         StatisticsInteractor.Callback,
         CsvHistogramInteractor.Callback,
-        ScoreInteractor.Callback,
         NodeCreatorInteractor.Callback,
-        PredictionInteractor.Callback {
+        PredictionInteractor.Callback,
+        ProbabilityInteractor.Callback,
+        TrendBiasInteractor.Callback,
+        NewsBiasInteractor.Callback {
 
-    private final SimpleDateFormat dateFormat =  new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
     private String ticker = "";
     private int timeSpan = 0;
     private double meanVolume = 0.0D;
     private double standardDeviation = 0.0D;
     private final PredictionData predictionData = new PredictionData();
+    private Score score;
 
-    public void start(String[] args){
-        if(args.length == 0){
-            System.out.println("No CSV file provided");
+    public void start(String[] args) {
+        if (args.length == 0) {
+            System.out.println("No argument provided");
             return;
         }
 
         String fileName = args[0];
 
+        if (fileName.equals("-h")) {
+            System.out.println("-----------------------------------------------------------------------------");
+            System.out.println("Help");
+            System.out.println("arg1 = path to file");
+            System.out.println("arg2 = current price in cents");
+            System.out.println("trend = -1 down, 0 consolidation, 1 up");
+            System.out.println("News = -1 negative, 0 non or generic, 1 significant positive news");
+            System.out.println("-----------------------------------------------------------------------------");
+
+
+            return;
+        }
+
         try {
             predictionData.currentPrice = Integer.parseInt(args[1]);
-        } catch (Exception ignored){
+        } catch (Exception ignored) {
             predictionData.currentPrice = 0;
         }
 
         try {
-            predictionData.firstHourVolume = Integer.parseInt(args[2]);
-        } catch (Exception ignored){
-            predictionData.firstHourVolume = 0;
+            predictionData.trend = Integer.parseInt(args[2]);
+        } catch (Exception ignored) {
+            predictionData.trend = 0;
         }
 
         try {
-            predictionData.newsCatalyst = Integer.parseInt(args[3]);
-        } catch (Exception ignored){
-            predictionData.newsCatalyst = 0;
-        }
-
-        try {
-            predictionData.fiveDayTrend = Integer.parseInt(args[4]);
-        } catch (Exception ignored){
-            predictionData.fiveDayTrend = 0;
-        }
-
-        try {
-            predictionData.formerRunner = Integer.parseInt(args[5]);
-        } catch (Exception ignored){
-            predictionData.formerRunner = 0;
-        }
-
-        try {
-            predictionData.gapUp = Integer.parseInt(args[6]);
-        } catch (Exception ignored){
-            predictionData.gapUp = 0;
+            predictionData.news = Integer.parseInt(args[3]);
+        } catch (Exception ignored) {
+            predictionData.news = 0;
         }
 
         new CsvHistogramInteractor(this, fileName).execute();
@@ -102,25 +103,23 @@ public class App implements
 
     @Override
     public void onSupplyZoneFiltered(List<SupplyZone> data) {
-
-        new ScoreInteractor(this, data, predictionData).execute();
+        printList(data);
+        if (predictionData.currentPrice > 0) {
+            new NodeCreatorInteractor(this, data, predictionData.currentPrice).execute();
+        }
     }
-
 
     @Override
     public void onHighestSupportFound(List<SupplyZone> data) {
-        printList(data, null);
+        printList(data);
     }
 
-    private void printList(List<SupplyZone> data, Score score) {
+    private void printList(List<SupplyZone> data) {
 
         System.out.println("\n\n");
         System.out.println(dateFormat.format(Calendar.getInstance().getTime()));
         System.out.println();
         System.out.println("Ticker : " + ticker + "\t Time Span : " + timeSpan + " Months" + "\t Mean Vol : " + (int) meanVolume);
-        if (score != null) {
-            System.out.println(score.toString());
-        }
         System.out.println("-----------------------------------------------------------------------------");
         System.out.printf("%-16s%-12s%-7s%-10s%-12s\n", "Price (Cents)", "Volume", "Count", "Rel Vol", "Note");
         System.out.println("-----------------------------------------------------------------------------");
@@ -153,30 +152,39 @@ public class App implements
     }
 
     @Override
-    public void onScoreCalculated(List<SupplyZone> data, Score score) {
-        printList(data, score);
-
-        if(predictionData.currentPrice > 0) {
-            new NodeCreatorInteractor(this, data, predictionData.currentPrice).execute();
-        }
-
-    }
-
-    @Override
     public void onPredictionComplete(List<Node> data) {
-
-        System.out.println("Prediction : " + ticker);
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-12s\n", "Level", "P(Level)", "Note");
-        System.out.println("-----------------------------------------------------------------------------");
-        for (Node e : data) {
-            System.out.printf("%-16s%-12.2f%-12s\n", e.level, e.probability, e.note);
-        }
-        System.out.println("-----------------------------------------------------------------------------");
+        printNodes(data);
     }
 
     @Override
     public void onNodesCreated(List<Node> data) {
-        new PredictionInteractor(this, data, 1).execute();
+        new ProbabilityInteractor(this, data).execute();
+    }
+
+    @Override
+    public void onProbabilityCreated(List<Node> data) {
+        new TrendBiasInteractor(this, data, predictionData.trend).execute();
+    }
+
+    @Override
+    public void onTrendBiasCreated(List<Node> data) {
+        new NewsBiasInteractor(this, data, predictionData.news).execute();
+    }
+
+    @Override
+    public void onNewsBiasCreated(List<Node> data) {
+        new PredictionInteractor(this, data).execute();
+    }
+
+    private void printNodes(List<Node> data) {
+        System.out.println("Prediction : " + ticker);
+        System.out.println("-----------------------------------------------------------------------------");
+        System.out.printf("%-16s%-12s%-12s%-12s%-12s\n", "Price", "Change", "P(Price)", "Prediction", "Note");
+        System.out.println("-----------------------------------------------------------------------------");
+        for (Node e : data) {
+            System.out.printf("%-16s%-12.2f%-12.2f%-12.2f%-12s\n", e.level, e.change, e.probability, e.prediction, e.note);
+        }
+        System.out.println("-----------------------------------------------------------------------------");
+
     }
 }

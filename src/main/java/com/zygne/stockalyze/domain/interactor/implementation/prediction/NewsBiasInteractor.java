@@ -4,34 +4,46 @@ import com.zygne.stockalyze.domain.interactor.base.Interactor;
 import com.zygne.stockalyze.domain.model.Node;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class PredictionInteractor implements Interactor {
+import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROD;
+
+public class NewsBiasInteractor implements Interactor {
+
+    private static final double MAX_BIAS = 2;
+    private static final double MAX_SKEW = 0.04;
+
 
     private Callback callback;
     private List<Node> data;
+    private int bias = 0;
 
-    public PredictionInteractor(Callback callback, List<Node> data) {
+    public NewsBiasInteractor(Callback callback, List<Node> data, int bias){
         this.callback = callback;
         this.data = data;
+        this.bias = bias;
     }
 
     @Override
     public void execute() {
 
+        double upperBias = 1.00;
+
+        if(bias > 0){
+            upperBias += MAX_SKEW;
+        } else {
+            upperBias -= MAX_SKEW;
+        }
+
+        double lowerBias = MAX_BIAS - upperBias;
+
         int originIndex = 0;
-        double highestPull = 0.0d;
 
         for(int i = 0; i < data.size(); i++){
 
-            if(data.get(i).pull > highestPull){
-                highestPull = data.get(i).pull;
-            }
-
             if(data.get(i).origin){
                 originIndex = i;
-                data.get(i).prediction = 100;
+                data.get(i).probability = 100;
             }
         }
 
@@ -47,8 +59,8 @@ public class PredictionInteractor implements Interactor {
             lowerPull.add(data.get(i));
         }
 
-        calculateProbability(upperPull);
-        calculateProbability(lowerPull);
+        createBias(upperPull, upperBias);
+        createBias(lowerPull, lowerBias);
 
         List<Node> filteredList = new ArrayList<>();
 
@@ -58,20 +70,20 @@ public class PredictionInteractor implements Interactor {
             }
         }
 
-        Collections.sort(filteredList);
+        callback.onNewsBiasCreated(data);
 
-        callback.onPredictionComplete(filteredList);
     }
 
-    private void calculateProbability(List<Node> data){
-
-        data.get(0).prediction = data.get(0).probability;
-        for(int i = 1; i < data.size(); i++){
-            data.get(i).prediction = ( (data.get(i).probability * data.get(i-1).probability) / data.get(i).probability);
+    private void createBias(List<Node> nodes, double bias){
+        for(Node n : nodes){
+            n.probability *= bias;
+            if(n.probability >= MAX_PROD){
+                n.probability = MAX_PROD;
+            }
         }
     }
 
     public interface Callback{
-        void onPredictionComplete(List<Node> data);
+        void onNewsBiasCreated(List<Node> data);
     }
 }
