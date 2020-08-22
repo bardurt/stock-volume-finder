@@ -67,7 +67,7 @@ public class PredictionInteractor implements Interactor {
 
         data.get(0).prediction = data.get(0).probability;
         for(int i = 1; i < data.size(); i++){
-            data.get(i).prediction = ( (data.get(i).probability * data.get(i-1).probability) / data.get(i).probability);
+            data.get(i).prediction = ((data.get(i).probability * data.get(i-1).probability) / 100);
         }
     }
 

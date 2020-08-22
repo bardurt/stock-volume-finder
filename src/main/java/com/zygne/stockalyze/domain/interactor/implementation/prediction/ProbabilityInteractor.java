@@ -49,12 +49,12 @@ public class ProbabilityInteractor implements Interactor {
         List<Node> lowerPull = new ArrayList<>();
 
         for(int i = originIndex+1; i < data.size(); i++){
-            data.get(i).change = (1 - ((double) data.get(i).level / originLevel))*-100;
+            data.get(i).change = (1 - ((double) data.get(i).level / originLevel))*100;
             lowerPull.add(data.get(i));
         }
 
-        calculateProbability(upperPull, originLevel, totalPull);
-        calculateProbability(lowerPull, originLevel, totalPull);
+        calculateProbability(upperPull, totalPull);
+        calculateProbability(lowerPull, totalPull);
 
         List<Node> filteredList = new ArrayList<>();
 
@@ -68,45 +68,34 @@ public class ProbabilityInteractor implements Interactor {
 
     }
 
-    private void calculateProbability(List<Node> data, int originalLevel, double pull){
+    private void calculateProbability(List<Node> data, double pull){
+
         // starting probability for first item
-        double probability = 95;
+        double probability = 100;
 
         // how many levels have we moved through
         int movement = 0;
 
-        // changes for each step
-        double change = 0;
-
         // how much drag, counter force
-        double drag = 0.0d;
+        double drag = 0.1d;
 
         for (Node datum : data) {
             movement++;
 
-            // the absolute difference between the levels of origin and this level
-            int levelDifference = Math.abs(datum.level - originalLevel);
+            drag += (datum.change / 10);
 
-            if(originalLevel > levelDifference){
-                drag += ((double) levelDifference / originalLevel );
-            } else {
-                drag += ((double) originalLevel / levelDifference );
-            }
+            drag += (datum.pull / pull);
 
-            change += drag;
+            drag += movement * 0.025;
 
-            change += (((datum.pull / pull)) * movement);
-
-            probability -= change;
+            probability -= drag;
 
             datum.probability = probability;
-
 
             if (probability < 0) {
                 probability = 0;
             }
         }
-
     }
 
     public interface Callback {

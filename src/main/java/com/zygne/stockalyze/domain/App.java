@@ -179,10 +179,10 @@ public class App implements
     private void printNodes(List<Node> data) {
         System.out.println("Prediction : " + ticker);
         System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-12s%-12s%-12s\n", "Price", "Change", "P(Price)", "Prediction", "Note");
+        System.out.printf("%-16s%-12s%-12s\n", "Price", "Change", "Prediction");
         System.out.println("-----------------------------------------------------------------------------");
         for (Node e : data) {
-            System.out.printf("%-16s%-12.2f%-12.2f%-12.2f%-12s\n", e.level, e.change, e.probability, e.prediction, e.note);
+            System.out.printf("%-16s%-12.2f%-12.2f%-12s\n", e.level, e.change, e.prediction, e.note);
         }
         System.out.println("-----------------------------------------------------------------------------");
 

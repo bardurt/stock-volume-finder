@@ -11,7 +11,7 @@ import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROD;
 public class TrendBiasInteractor implements Interactor {
 
     private static final double MAX_BIAS = 2;
-    private static final double MAX_SKEW = 0.03;
+    private static final double MAX_SKEW = 0.025;
 
     private Callback callback;
     private List<Node> data;

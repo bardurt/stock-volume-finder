@@ -11,7 +11,7 @@ import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROD;
 public class NewsBiasInteractor implements Interactor {
 
     private static final double MAX_BIAS = 2;
-    private static final double MAX_SKEW = 0.04;
+    private static final double MAX_SKEW = 0.02;
 
 
     private Callback callback;
@@ -75,6 +75,7 @@ public class NewsBiasInteractor implements Interactor {
     }
 
     private void createBias(List<Node> nodes, double bias){
+
         for(Node n : nodes){
             n.probability *= bias;
             if(n.probability >= MAX_PROD){
