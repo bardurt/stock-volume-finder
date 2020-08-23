@@ -5,5 +5,5 @@ public class Histogram {
     public int high;
     public int low;
     public int close;
-    public int volume;
+    public long volume;
 }

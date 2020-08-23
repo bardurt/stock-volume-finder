@@ -3,10 +3,10 @@ package com.zygne.stockalyze.domain.model;
 public class VolumePriceGroup implements Comparable{
 
     public int price;
-    public int totalSize;
+    public long totalSize;
     public int orderCount;
 
-    public VolumePriceGroup(int price, int totalSize){
+    public VolumePriceGroup(int price, long totalSize){
         this.price = price;
         this.totalSize = totalSize;
         this.orderCount = 1;

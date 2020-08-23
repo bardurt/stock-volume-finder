@@ -65,6 +65,9 @@ public class PredictionInteractor implements Interactor {
 
     private void calculateProbability(List<Node> data){
 
+        if(data.isEmpty()){
+            return;
+        }
         data.get(0).prediction = data.get(0).probability;
         for(int i = 1; i < data.size(); i++){
             data.get(i).prediction = ((data.get(i).probability * data.get(i-1).probability) / 100);

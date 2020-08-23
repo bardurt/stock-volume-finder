@@ -3,12 +3,12 @@ package com.zygne.stockalyze.domain.model;
 public class SupplyZone implements Comparable {
 
     public int price;
-    public int totalSize;
+    public long totalSize;
     public int orderCount;
     public double relativeVolume;
     public String note = "";
 
-    public SupplyZone(int price, int totalSize, int orderCount) {
+    public SupplyZone(int price, long totalSize, int orderCount) {
         this.price = price;
         this.totalSize = totalSize;
         this.orderCount = orderCount;

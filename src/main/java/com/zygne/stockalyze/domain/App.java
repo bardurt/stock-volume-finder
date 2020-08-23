@@ -1,12 +1,13 @@
 package com.zygne.stockalyze.domain;
 
+import com.zygne.stockalyze.domain.interactor.implementation.ScriptInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.TradingViewScriptInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.*;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.NewsBiasInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.PredictionInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.TrendBiasInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.ProbabilityInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.stats.StatisticsInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.stats.ScoreInteractor;
 import com.zygne.stockalyze.domain.model.*;
 
 import java.text.SimpleDateFormat;
@@ -15,19 +16,20 @@ import java.util.List;
 
 public class App implements
         VolumePriceLevelCreatorInteractor.Callback,
-        VolumePriceFormatterInteractor.Callback,
         VolumePriceGroupCreatorInteractor.Callback,
         SupplyZoneCreatorInteractor.Callback,
         SupplyZoneFilterInteractor.Callback,
         InstitutionalPriceFormatterInteractor.Callback,
-        HighestSupportInteractor.Callback,
         StatisticsInteractor.Callback,
-        CsvHistogramInteractor.Callback,
         NodeCreatorInteractor.Callback,
         PredictionInteractor.Callback,
         ProbabilityInteractor.Callback,
         TrendBiasInteractor.Callback,
-        NewsBiasInteractor.Callback {
+        NewsBiasInteractor.Callback,
+        SourceCheckerInteractor.Callback,
+        DataFetchInteractor.Callback,
+        HistogramCreatorInteractor.Callback,
+        ScriptInteractor.Callback {
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
     private String ticker = "";
@@ -35,7 +37,9 @@ public class App implements
     private double meanVolume = 0.0D;
     private double standardDeviation = 0.0D;
     private final PredictionData predictionData = new PredictionData();
-    private Score score;
+    private TradingViewScriptInteractor tradingViewScriptInteractor;
+
+    private Simulator simulator = new Simulator();
 
     public void start(String[] args) {
         if (args.length == 0) {
@@ -48,12 +52,11 @@ public class App implements
         if (fileName.equals("-h")) {
             System.out.println("-----------------------------------------------------------------------------");
             System.out.println("Help");
-            System.out.println("arg1 = path to file");
+            System.out.println("arg1 = Source (Path to csv file OR ticker name)");
             System.out.println("arg2 = current price in cents");
             System.out.println("trend = -1 down, 0 consolidation, 1 up");
             System.out.println("News = -1 negative, 0 non or generic, 1 significant positive news");
             System.out.println("-----------------------------------------------------------------------------");
-
 
             return;
         }
@@ -76,19 +79,42 @@ public class App implements
             predictionData.news = 0;
         }
 
-        new CsvHistogramInteractor(this, fileName).execute();
+        simulator.currentPrice = predictionData.currentPrice;
+        simulator.news = predictionData.news;
+        simulator.trend = predictionData.trend;
+        new SourceCheckerInteractor(this, fileName).execute();
+    }
+
+    @Override
+    public void readCsvFile(String path) {
+        new CsvReaderInteractor(this, path).execute();
+    }
+
+    @Override
+    public void downloadData(String ticker) {
+        new YahooFinanceInteractor(this, ticker).execute();
+    }
+
+    @Override
+    public void onDataFetched(List<String> entries, String ticker) {
+        this.ticker = ticker;
+        new HistogramCreatorInteractor(this, entries).execute();
+    }
+
+    @Override
+    public void onHistogramCreated(List<Histogram> data, int months) {
+        this.timeSpan = months;
+        new StatisticsInteractor(this, data).execute();
+    }
+
+    @Override
+    public void onDataFetchError(String message) {
+        System.out.println(message);
     }
 
     @Override
     public void onInstitutionalPriceFormatted(List<VolumePriceLevel> data) {
         new VolumePriceGroupCreatorInteractor(this, data).execute();
-    }
-
-    @Override
-    public void onVolumePriceFormatted(List<VolumePriceLevel> data) {
-        for (VolumePriceLevel e : data) {
-            System.out.println("Histogram p :" + e.price + ", size : " + e.size);
-        }
     }
 
     @Override
@@ -103,15 +129,12 @@ public class App implements
 
     @Override
     public void onSupplyZoneFiltered(List<SupplyZone> data) {
+        simulator.supplyZones = data;
         printList(data);
+        tradingViewScriptInteractor = new TradingViewScriptInteractor(this, ticker, data);
         if (predictionData.currentPrice > 0) {
             new NodeCreatorInteractor(this, data, predictionData.currentPrice).execute();
         }
-    }
-
-    @Override
-    public void onHighestSupportFound(List<SupplyZone> data) {
-        printList(data);
     }
 
     private void printList(List<SupplyZone> data) {
@@ -133,13 +156,6 @@ public class App implements
     }
 
     @Override
-    public void onHistogramLoaded(List<Histogram> data, String tickerName, int timeSpan) {
-        this.ticker = tickerName;
-        this.timeSpan = timeSpan;
-        new StatisticsInteractor(this, data).execute();
-    }
-
-    @Override
     public void onStatisticsCalculated(List<Histogram> data, double mean, double standardDeviation) {
         meanVolume = mean;
         this.standardDeviation = standardDeviation;
@@ -154,6 +170,8 @@ public class App implements
     @Override
     public void onPredictionComplete(List<Node> data) {
         printNodes(data);
+        tradingViewScriptInteractor.execute();
+        //simulator.start();
     }
 
     @Override
@@ -186,5 +204,10 @@ public class App implements
         }
         System.out.println("-----------------------------------------------------------------------------");
 
+    }
+
+    @Override
+    public void onScriptCreated(String script) {
+        System.out.println(script);
     }
 }

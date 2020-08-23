@@ -18,7 +18,7 @@ public class StatisticsInteractor implements Interactor {
     @Override
     public void execute() {
 
-        int totalShares = 0;
+        long totalShares = 0;
         int sampleSize = data.size();
 
         for(Histogram e : data){
