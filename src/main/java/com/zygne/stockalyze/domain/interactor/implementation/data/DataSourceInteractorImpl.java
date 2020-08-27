@@ -1,13 +1,13 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.DataSourceInteractor;
 
-public class SourceCheckerInteractor implements Interactor {
+public class DataSourceInteractorImpl implements DataSourceInteractor {
 
     private Callback callback;
     private String source;
 
-    public SourceCheckerInteractor(Callback callback, String source){
+    public DataSourceInteractorImpl(Callback callback, String source){
         this.callback = callback;
         this.source = source;
     }
@@ -21,10 +21,5 @@ public class SourceCheckerInteractor implements Interactor {
             callback.downloadData(source);
         }
 
-    }
-
-    public interface Callback{
-        void readCsvFile(String path);
-        void downloadData(String ticker);
     }
 }

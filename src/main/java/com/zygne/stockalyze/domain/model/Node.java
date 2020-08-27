@@ -8,6 +8,7 @@ public class Node implements Comparable{
     public double probability;
     public double change;
     public double prediction;
+    public double strength;
     public String note = "";
 
     @Override

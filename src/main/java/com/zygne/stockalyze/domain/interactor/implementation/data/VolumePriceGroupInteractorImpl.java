@@ -1,17 +1,17 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
-import com.zygne.stockalyze.domain.model.VolumePriceLevel;
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.VolumePriceGroupInteractor;
 import com.zygne.stockalyze.domain.model.VolumePriceGroup;
+import com.zygne.stockalyze.domain.model.VolumePriceLevel;
 
 import java.util.*;
 
-public class VolumePriceGroupCreatorInteractor implements Interactor {
+public class VolumePriceGroupInteractorImpl implements VolumePriceGroupInteractor {
 
     private Callback callback;
     private List<VolumePriceLevel> data;
 
-    public VolumePriceGroupCreatorInteractor(Callback callback, List<VolumePriceLevel> data) {
+    public VolumePriceGroupInteractorImpl(Callback callback, List<VolumePriceLevel> data) {
         this.callback = callback;
         this.data = data;
     }
@@ -40,9 +40,5 @@ public class VolumePriceGroupCreatorInteractor implements Interactor {
         Collections.reverse(groups);
         callback.onVolumePriceGroupCreated(groups);
 
-    }
-
-    public interface Callback{
-        void onVolumePriceGroupCreated(List<VolumePriceGroup> data);
     }
 }

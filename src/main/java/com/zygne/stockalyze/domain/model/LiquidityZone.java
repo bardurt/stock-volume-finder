@@ -1,6 +1,6 @@
 package com.zygne.stockalyze.domain.model;
 
-public class SupplyZone implements Comparable {
+public class LiquidityZone implements Comparable {
 
     public int price;
     public long totalSize;
@@ -8,7 +8,7 @@ public class SupplyZone implements Comparable {
     public double relativeVolume;
     public String note = "";
 
-    public SupplyZone(int price, long totalSize, int orderCount) {
+    public LiquidityZone(int price, long totalSize, int orderCount) {
         this.price = price;
         this.totalSize = totalSize;
         this.orderCount = orderCount;
@@ -16,7 +16,7 @@ public class SupplyZone implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        int priceB = ((SupplyZone)o).price;
+        int priceB = ((LiquidityZone)o).price;
 
         if(price < priceB){
             return 1;

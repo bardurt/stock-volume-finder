@@ -6,5 +6,7 @@ public class PredictionData {
     public int currentPrice = -1;
     public int trend = 0;
     public int news = 0;
+    public double gapRate;
+    public int gapper = 0;
 
 }

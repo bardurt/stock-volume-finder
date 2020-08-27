@@ -1,18 +1,17 @@
 package com.zygne.stockalyze.domain;
 
-import com.zygne.stockalyze.domain.interactor.implementation.data.NodeCreatorInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.NodeInteractorImpl;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.NearestHighNodeInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.NewsBiasInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.ProbabilityInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.TrendBiasInteractor;
-import com.zygne.stockalyze.domain.model.Histogram;
 import com.zygne.stockalyze.domain.model.Node;
-import com.zygne.stockalyze.domain.model.SupplyZone;
+import com.zygne.stockalyze.domain.model.LiquidityZone;
 
 import java.util.List;
 
 public class Simulator implements
-        NodeCreatorInteractor.Callback,
+        NodeInteractorImpl.Callback,
         ProbabilityInteractor.Callback,
         NewsBiasInteractor.Callback,
         TrendBiasInteractor.Callback,
@@ -21,14 +20,14 @@ public class Simulator implements
 
     private static final int MAX_ROUNDS = 96;
     private int rounds = 0;
-    public List<SupplyZone> supplyZones;
+    public List<LiquidityZone> liquidityZones;
     public int currentPrice;
     public int trend;
     public int news;
 
     public void start() {
-        if (supplyZones != null) {
-            new NodeCreatorInteractor(this, supplyZones, currentPrice).execute();
+        if (liquidityZones != null) {
+            new NodeInteractorImpl(this, liquidityZones, currentPrice).execute();
         }
 
     }

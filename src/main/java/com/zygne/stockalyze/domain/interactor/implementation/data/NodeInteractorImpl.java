@@ -1,21 +1,21 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.NodeInteractor;
 import com.zygne.stockalyze.domain.model.Node;
-import com.zygne.stockalyze.domain.model.SupplyZone;
+import com.zygne.stockalyze.domain.model.LiquidityZone;
 import com.zygne.stockalyze.domain.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class NodeCreatorInteractor implements Interactor {
+public class NodeInteractorImpl implements NodeInteractor {
 
     private Callback callback;
-    private List<SupplyZone> zones;
+    private List<LiquidityZone> zones;
     private int currentLevel;
 
-    public NodeCreatorInteractor(Callback callback, List<SupplyZone> zones, int currentLevel){
+    public NodeInteractorImpl(Callback callback, List<LiquidityZone> zones, int currentLevel){
         this.callback = callback;
         this.zones = zones;
         this.currentLevel = currentLevel;
@@ -27,11 +27,12 @@ public class NodeCreatorInteractor implements Interactor {
         List<Node> nodes = new ArrayList<>();
 
         boolean originFound = false;
-        for(SupplyZone e : zones){
+        for(LiquidityZone e : zones){
 
             Node n = new Node();
             n.level = e.price;
             n.pull = (int) (e.relativeVolume * e.orderCount);
+            n.strength = e.relativeVolume;
             if(e.price == currentLevel){
                 n.origin = true;
                 n.note = Constants.TAG_CURRENT_PRICE;
@@ -53,9 +54,5 @@ public class NodeCreatorInteractor implements Interactor {
         Collections.sort(nodes);
 
         callback.onNodesCreated(nodes);
-    }
-
-    public interface Callback{
-        void onNodesCreated(List<Node> data);
     }
 }

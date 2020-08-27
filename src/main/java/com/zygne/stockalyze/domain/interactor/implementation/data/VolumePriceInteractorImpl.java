@@ -1,18 +1,18 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.VolumePriceInteractor;
 import com.zygne.stockalyze.domain.model.Histogram;
 import com.zygne.stockalyze.domain.model.VolumePriceLevel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class VolumePriceLevelCreatorInteractor implements Interactor {
+public class VolumePriceInteractorImpl implements VolumePriceInteractor {
 
     private Callback callback;
     private List<Histogram> histogramList;
 
-    public VolumePriceLevelCreatorInteractor(Callback callback, List<Histogram> histogramList) {
+    public VolumePriceInteractorImpl(Callback callback, List<Histogram> histogramList) {
         this.callback = callback;
         this.histogramList = histogramList;
     }
@@ -37,9 +37,5 @@ public class VolumePriceLevelCreatorInteractor implements Interactor {
 
         callback.onVolumePriceCreated(data);
 
-    }
-
-    public interface Callback {
-        void onVolumePriceCreated(List<VolumePriceLevel> data);
     }
 }

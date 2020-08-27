@@ -18,7 +18,7 @@ public class NewsBiasInteractor implements Interactor {
     private List<Node> data;
     private int bias = 0;
 
-    public NewsBiasInteractor(Callback callback, List<Node> data, int bias){
+    public NewsBiasInteractor(Callback callback, List<Node> data, int bias) {
         this.callback = callback;
         this.data = data;
         this.bias = bias;
@@ -27,9 +27,14 @@ public class NewsBiasInteractor implements Interactor {
     @Override
     public void execute() {
 
+        if (bias == 0) {
+            callback.onNewsBiasCreated(data);
+            return;
+        }
+
         double upperBias = 1.00;
 
-        if(bias > 0){
+        if (bias > 0) {
             upperBias += MAX_SKEW;
         } else {
             upperBias -= MAX_SKEW;
@@ -39,9 +44,9 @@ public class NewsBiasInteractor implements Interactor {
 
         int originIndex = 0;
 
-        for(int i = 0; i < data.size(); i++){
+        for (int i = 0; i < data.size(); i++) {
 
-            if(data.get(i).origin){
+            if (data.get(i).origin) {
                 originIndex = i;
                 data.get(i).probability = 100;
             }
@@ -49,13 +54,13 @@ public class NewsBiasInteractor implements Interactor {
 
         List<Node> upperPull = new ArrayList<>();
 
-        for(int i = originIndex-1; i > -1; i--){
+        for (int i = originIndex - 1; i > -1; i--) {
             upperPull.add(data.get(i));
         }
 
         List<Node> lowerPull = new ArrayList<>();
 
-        for(int i = originIndex+1; i < data.size(); i++){
+        for (int i = originIndex + 1; i < data.size(); i++) {
             lowerPull.add(data.get(i));
         }
 
@@ -64,27 +69,25 @@ public class NewsBiasInteractor implements Interactor {
 
         List<Node> filteredList = new ArrayList<>();
 
-        for(Node e : data){
-            if(e.probability > 0){
-                filteredList.add(e);
-            }
-        }
+        filteredList.addAll(data);
 
         callback.onNewsBiasCreated(data);
 
     }
 
-    private void createBias(List<Node> nodes, double bias){
+    private void createBias(List<Node> nodes, double bias) {
 
-        for(Node n : nodes){
+        for (Node n : nodes) {
             n.probability *= bias;
-            if(n.probability >= MAX_PROD){
+            if (n.probability >= MAX_PROD) {
                 n.probability = MAX_PROD;
+            } else if(n.probability < 1){
+                n.probability = 1;
             }
         }
     }
 
-    public interface Callback{
+    public interface Callback {
         void onNewsBiasCreated(List<Node> data);
     }
 }

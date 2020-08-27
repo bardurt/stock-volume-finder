@@ -1,5 +1,6 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.DataFetchInteractor;
 import com.zygne.stockalyze.domain.utils.StringHelper;
 
 import java.io.BufferedReader;

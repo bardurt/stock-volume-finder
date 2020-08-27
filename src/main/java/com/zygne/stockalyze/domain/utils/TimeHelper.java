@@ -39,4 +39,19 @@ public class TimeHelper {
             return 12;
         }
     }
+
+    public static long getTimeStamp(String dateString){
+        DateFormat df = new SimpleDateFormat(timeFormat);
+
+        Date date;
+        try {
+            date = df.parse(dateString);
+        } catch (ParseException e) {
+            return 0;
+        }
+
+
+        return date.getTime();
+
+    }
 }

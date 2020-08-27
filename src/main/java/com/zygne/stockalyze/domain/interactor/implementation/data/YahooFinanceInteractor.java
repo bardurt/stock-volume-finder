@@ -1,5 +1,7 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.DataFetchInteractor;
+
 import java.io.InputStream;
 import java.net.URL;
 import java.time.Instant;

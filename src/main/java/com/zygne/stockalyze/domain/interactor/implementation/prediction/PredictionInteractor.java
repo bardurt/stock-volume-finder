@@ -53,7 +53,7 @@ public class PredictionInteractor implements Interactor {
         List<Node> filteredList = new ArrayList<>();
 
         for(Node e : data){
-            if(e.probability > 0){
+            if(e.probability > 10){
                 filteredList.add(e);
             }
         }

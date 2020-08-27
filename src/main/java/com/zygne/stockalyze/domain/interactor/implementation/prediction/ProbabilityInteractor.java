@@ -41,14 +41,21 @@ public class ProbabilityInteractor implements Interactor {
 
         List<Node> upperPull = new ArrayList<>();
 
-        for(int i = originIndex-1; i > -1; i--){
-            data.get(i).change = (1 - originLevel / (double) data.get(i).level) * 100;
+        for(int i = originIndex; i > -1; i--){
+            if(data.get(i).origin){
+                continue;
+            }
+
+            data.get(i).change = (((double) data.get(i).level / originLevel) -1) * 100;
             upperPull.add(data.get(i));
         }
 
         List<Node> lowerPull = new ArrayList<>();
 
-        for(int i = originIndex+1; i < data.size(); i++){
+        for(int i = originIndex; i < data.size(); i++){
+            if(data.get(i).origin){
+                continue;
+            }
             data.get(i).change = (1 - ((double) data.get(i).level / originLevel))*100;
             lowerPull.add(data.get(i));
         }
@@ -84,17 +91,18 @@ public class ProbabilityInteractor implements Interactor {
 
             drag += (datum.change / 10);
 
-            drag += (datum.pull / pull);
-
             drag += movement * 0.025;
 
             probability -= drag;
 
+            if (probability < 10) {
+                probability = 10;
+            }
+
             datum.probability = probability;
 
-            if (probability < 0) {
-                probability = 0;
-            }
+            drag += (datum.pull / pull);
+
         }
     }
 
