@@ -1,22 +1,26 @@
-package com.zygne.stockalyze.domain.interactor.implementation.stats;
+package com.zygne.stockalyze.domain.interactor.implementation.data;
 
 import com.zygne.stockalyze.domain.interactor.base.Interactor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.StatisticsInteractor;
 import com.zygne.stockalyze.domain.model.Histogram;
+import com.zygne.stockalyze.domain.model.Statistics;
 
 import java.util.List;
 
-public class StatisticsInteractor implements Interactor {
+public class StatisticsInteractorImpl implements StatisticsInteractor {
 
     private Callback callback;
     private List<Histogram> data;
 
-    public StatisticsInteractor(Callback callback, List<Histogram> data){
+    public StatisticsInteractorImpl(Callback callback, List<Histogram> data){
         this.callback = callback;
         this.data = data;
     }
 
     @Override
     public void execute() {
+
+        Statistics statistics = new Statistics();
 
         long totalShares = 0;
         int sampleSize = data.size();
@@ -35,10 +39,11 @@ public class StatisticsInteractor implements Interactor {
 
         double standardDeviation = Math.sqrt(variance);
 
-        callback.onStatisticsCalculated(data, mean, standardDeviation);
-    }
+        statistics.sampleSize = sampleSize;
+        statistics.mean = mean;
+        statistics.variance = variance;
+        statistics.standardDeviation = standardDeviation;
 
-    public interface Callback{
-        void onStatisticsCalculated(List<Histogram> data, double mean, double standardDeviation);
+        callback.onStatisticsCalculated(statistics);
     }
 }

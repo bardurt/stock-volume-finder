@@ -1,6 +1,7 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.LiquidityZoneInteractor;
+import com.zygne.stockalyze.domain.model.Statistics;
 import com.zygne.stockalyze.domain.model.VolumePriceGroup;
 import com.zygne.stockalyze.domain.model.LiquidityZone;
 
@@ -11,12 +12,12 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
 
     private Callback callback;
     private List<VolumePriceGroup> data;
-    private double mean;
+    private Statistics statistics;
 
-    public LiquidityZoneInteractorImpl(Callback callback, List<VolumePriceGroup> data, double mean){
+    public LiquidityZoneInteractorImpl(Callback callback, List<VolumePriceGroup> data, Statistics statistics){
         this.callback = callback;
         this.data = data;
-        this.mean = mean;
+        this.statistics = statistics;
     }
 
     @Override
@@ -26,7 +27,7 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
 
         for(VolumePriceGroup e : data){
             LiquidityZone s = new LiquidityZone(e.price, e.totalSize, e.orderCount);
-            s.relativeVolume = e.totalSize / mean;
+            s.relativeVolume = e.totalSize / statistics.mean;
             formatted.add(s);
         }
 

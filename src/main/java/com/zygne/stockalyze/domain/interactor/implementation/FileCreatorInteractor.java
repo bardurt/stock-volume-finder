@@ -2,10 +2,13 @@ package com.zygne.stockalyze.domain.interactor.implementation;
 
 import com.zygne.stockalyze.domain.interactor.base.Interactor;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 public class FileCreatorInteractor implements Interactor {
+
+    private static final String FOLDER_NAME = "scripts";
 
     private Callback callback;
     private String content;
@@ -20,7 +23,12 @@ public class FileCreatorInteractor implements Interactor {
     @Override
     public void execute() {
 
-        String fileName = name;
+        File file = new File(FOLDER_NAME);
+
+        boolean dirCreated = file.mkdirs();
+
+        String fileName = file.getAbsolutePath() + "/" + name;
+
         try {
             FileWriter myWriter = new FileWriter(fileName);
             myWriter.write(content);

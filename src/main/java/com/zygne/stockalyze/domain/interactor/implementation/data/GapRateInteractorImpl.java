@@ -21,8 +21,13 @@ public class GapRateInteractorImpl implements GapRateInteractor {
     @Override
     public void execute() {
 
-        double minGap = 1.25;
+        double minGap = 1.20;
         double currentGap = 1.25;
+        double gapLimit = minGap;
+
+        double gapMin = 1.1;
+        double gapMax = 2.1;
+
         GapDetails gapDetails = new GapDetails();
         gapDetails.minGap = minGap;
 
@@ -32,6 +37,8 @@ public class GapRateInteractorImpl implements GapRateInteractor {
 
             currentGap = currentPrice / (double)lastClose;
             gapDetails.currentGap = currentGap;
+
+            gapDetails.maxGap = gapMax;
         }
 
 
@@ -51,7 +58,7 @@ public class GapRateInteractorImpl implements GapRateInteractor {
                 double gapUp = currentOpen / (double)lastClose;
                 double gapHigh = currentHigh / (double) currentOpen;
 
-                if(gapUp > minGap && gapUp < currentGap){
+                if(gapUp >= gapLimit){
                     numberOfGaps++;
 
                     if(currentClose > currentOpen){
@@ -69,6 +76,7 @@ public class GapRateInteractorImpl implements GapRateInteractor {
         }
 
         if(numberOfGaps > 0) {
+            gapDetails.gapCount = numberOfGaps;
             gapDetails.gapBull = bullGaps / (double) numberOfGaps;
             gapDetails.gap10 = gap10 / (double) numberOfGaps;
             gapDetails.gap20 = gap20 / (double) numberOfGaps;

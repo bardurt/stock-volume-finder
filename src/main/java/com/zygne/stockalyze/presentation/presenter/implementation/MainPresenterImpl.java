@@ -1,19 +1,20 @@
-package com.zygne.stockalyze.domain;
+package com.zygne.stockalyze.presentation.presenter.implementation;
 
 import com.zygne.stockalyze.domain.interactor.implementation.FileCreatorInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.*;
+import com.zygne.stockalyze.domain.interactor.implementation.data.base.*;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.*;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.TradingViewScriptInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.data.*;
-import com.zygne.stockalyze.domain.interactor.implementation.data.base.*;
-import com.zygne.stockalyze.domain.interactor.implementation.stats.StatisticsInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.data.StatisticsInteractorImpl;
 import com.zygne.stockalyze.domain.model.*;
+import com.zygne.stockalyze.presentation.presenter.base.MainPresenter;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-public class App implements
+public class MainPresenterImpl implements MainPresenter,
         VolumePriceInteractor.Callback,
         VolumePriceGroupInteractor.Callback,
         LiquidityZoneInteractor.Callback,
@@ -32,71 +33,22 @@ public class App implements
         StockFloatInteractor.Callback,
         TrendInteractor.Callback,
         GapRateInteractor.Callback,
-        GapCheckInteractor.Callback,
-        GapBiasInteractor.Callback{
+        GapBiasInteractor.Callback,
+        StrongestPullBiasInteractor.Callback{
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
     private String ticker = "";
     private int timeSpan = 0;
-    private double meanVolume = 0.0D;
-    private double standardDeviation = 0.0D;
+    private Statistics statistics;
     private int stockFloat;
     private GapDetails gapDetails = null;
-    private double gapRate = 0.0d;
     private final PredictionData predictionData = new PredictionData();
-    private TradingViewScriptInteractor tradingViewScriptInteractor;
+    private List<Histogram> histogramList;
 
-    private Simulator simulator = new Simulator();
-
-    public void start(String[] args) {
-        if (args.length == 0) {
-            System.out.println("No argument provided");
-            return;
-        }
-
-        String fileName = args[0];
-
-        if (fileName.equals("-h")) {
-            System.out.println("-----------------------------------------------------------------------------");
-            System.out.println("Help");
-            System.out.println("arg1 = Source (Path to csv file OR ticker name)");
-            System.out.println("arg2 = current price in cents");
-            System.out.println("trend = -1 down, 0 consolidation, 1 up");
-            System.out.println("News = -1 negative, 0 non or generic, 1 significant positive news");
-            System.out.println("Gap = 1 Yes, 0 No");
-            System.out.println("-----------------------------------------------------------------------------");
-
-            return;
-        }
-
-        try {
-            predictionData.currentPrice = Integer.parseInt(args[1]);
-        } catch (Exception ignored) {
-            predictionData.currentPrice = 0;
-        }
-
-        try {
-            predictionData.trend = Integer.parseInt(args[2]);
-        } catch (Exception ignored) {
-            predictionData.trend = 0;
-        }
-
-        try {
-            predictionData.news = Integer.parseInt(args[3]);
-        } catch (Exception ignored) {
-            predictionData.news = 0;
-        }
-
-        try {
-            predictionData.gapper = Integer.parseInt(args[4]);
-        } catch (Exception ignored){
-            predictionData.gapper = 0;
-        }
-
-        simulator.currentPrice = predictionData.currentPrice;
-        simulator.news = predictionData.news;
-        simulator.trend = predictionData.trend;
-        new DataSourceInteractorImpl(this, fileName).execute();
+    @Override
+    public void start(String ticker, int openPrice) {
+        predictionData.currentPrice = openPrice;
+        new DataSourceInteractorImpl(this, ticker).execute();
     }
 
     @Override
@@ -124,7 +76,8 @@ public class App implements
     @Override
     public void onHistogramCreated(List<Histogram> data, int months) {
         this.timeSpan = months;
-        new StatisticsInteractor(this, data).execute();
+        this.histogramList = data;
+        new StatisticsInteractorImpl(this, data).execute();
     }
 
     @Override
@@ -134,17 +87,16 @@ public class App implements
 
     @Override
     public void onVolumePriceGroupCreated(List<VolumePriceGroup> data) {
-        new LiquidityZoneInteractorImpl(this, data, meanVolume).execute();
+        new LiquidityZoneInteractorImpl(this, data, statistics).execute();
     }
 
     @Override
     public void onLiquidityZonesCreated(List<LiquidityZone> data) {
-        new LiquidityZoneFilterInteractorImpl(this, data, meanVolume, standardDeviation).execute();
+        new LiquidityZoneFilterInteractorImpl(this, data).execute();
     }
 
     @Override
     public void onLiquidityZonesFiltered(List<LiquidityZone> data) {
-        simulator.liquidityZones = data;
         printList(data);
         if (predictionData.currentPrice > 0) {
             new NodeInteractorImpl(this, data, predictionData.currentPrice).execute();
@@ -156,20 +108,22 @@ public class App implements
         System.out.println("\n\n");
         System.out.println("Report : " + ticker + " - " + dateFormat.format(Calendar.getInstance().getTime()));
         System.out.println();
-        System.out.println("Ticker : " + ticker + "\t Time Span : " + timeSpan + " Months" + "\t Mean Vol : " + ((int) meanVolume));
+        System.out.println("Ticker : " + ticker + "\t Time Span : " + timeSpan + " Months" + "\t Mean Vol : " + ((int) statistics.mean));
         System.out.printf("%-9s%,d\n", "Float", stockFloat);
         System.out.println();
 
         System.out.println("Gap Details");
         System.out.printf("%-16s%.2f\n", "Current Gap", gapDetails.currentGap);
 
-        System.out.println();
-
-        System.out.printf("%s%.2f%s%.2f\n", "Gap History for ", gapDetails.minGap, " to ", gapDetails.currentGap);
-        System.out.printf("%-16s%.2f\n", "High 10%", gapDetails.gap10);
-        System.out.printf("%-16s%.2f\n", "High 20%", gapDetails.gap20);
-        System.out.printf("%-16s%.2f\n", "Bullish close", gapDetails.gap20);
-        System.out.println();
+        if(gapDetails.isGapper()) {
+            System.out.println();
+            System.out.printf("%s%.2f%s\n", "Gap History for ", gapDetails.minGap, "+ gappers ");
+            System.out.printf("%-16s%s\n", "Gap Count", gapDetails.gapCount);
+            System.out.printf("%-16s%.2f\n", "High 10%", gapDetails.gap10);
+            System.out.printf("%-16s%.2f\n", "High 20%", gapDetails.gap20);
+            System.out.printf("%-16s%.2f\n", "Bullish close", gapDetails.gap20);
+            System.out.println();
+        }
 
         System.out.println("-----------------------------------------------------------------------------");
         System.out.printf("%-16s%-12s%-7s%-10s%-12s\n", "Price (Cents)", "Volume", "Count", "Rel Vol", "Note");
@@ -180,14 +134,13 @@ public class App implements
         }
 
         System.out.println("-----------------------------------------------------------------------------");
-        System.out.println("\n\n");
+        System.out.println();
     }
 
     @Override
-    public void onStatisticsCalculated(List<Histogram> data, double mean, double standardDeviation) {
-        meanVolume = mean;
-        this.standardDeviation = standardDeviation;
-        new TrendInteractorImpl(this, data).execute();
+    public void onStatisticsCalculated(Statistics statistics) {
+        this.statistics = statistics;
+        new TrendInteractorImpl(this, histogramList).execute();
     }
 
     @Override
@@ -198,9 +151,8 @@ public class App implements
     @Override
     public void onPredictionComplete(List<Node> data) {
         printNodes(data);
-        tradingViewScriptInteractor = new TradingViewScriptInteractor(this, ticker, data);
+        TradingViewScriptInteractor tradingViewScriptInteractor = new TradingViewScriptInteractor(this, ticker, data);
         tradingViewScriptInteractor.execute();
-        //simulator.start();
     }
 
     @Override
@@ -210,6 +162,11 @@ public class App implements
 
     @Override
     public void onProbabilityCreated(List<Node> data) {
+        new StrongestPullBiasInteractor(this, data).execute();
+    }
+
+    @Override
+    public void onStrongestPullBiasCreated(List<Node> data) {
         new TrendBiasInteractor(this, data, predictionData.trend).execute();
     }
 
@@ -220,7 +177,7 @@ public class App implements
 
     @Override
     public void onNewsBiasCreated(List<Node> data) {
-        new GapBiasInteractor(this, data, gapDetails).execute();
+        new GapUpBiasInteractor(this, data, gapDetails).execute();
     }
 
     private void printNodes(List<Node> data) {
@@ -250,12 +207,10 @@ public class App implements
         new GapRateInteractorImpl(this, data, predictionData.currentPrice).execute();
     }
 
-
     @Override
     public void onGapRateCalculated(GapDetails gapDetails, List<Histogram> data) {
         this.gapDetails = gapDetails;
         this.predictionData.gapRate = gapDetails.gapBull;
-        this.gapRate = gapDetails.gapBull;
         new VolumePriceInteractorImpl(this, data).execute();
     }
 
@@ -264,8 +219,4 @@ public class App implements
         new PredictionInteractor(this, data).execute();
     }
 
-    @Override
-    public void onGapValidated(boolean gapUp) {
-
-    }
 }

@@ -10,14 +10,10 @@ public class LiquidityZoneFilterInteractorImpl implements LiquidityZoneFilterInt
 
     private Callback callback;
     private List<LiquidityZone> data;
-    private double mean;
-    private double sd;
 
-    public LiquidityZoneFilterInteractorImpl(Callback callback, List<LiquidityZone> data, double mean, double sd) {
+    public LiquidityZoneFilterInteractorImpl(Callback callback, List<LiquidityZone> data) {
         this.callback = callback;
         this.data = data;
-        this.mean = mean;
-        this.sd = sd;
     }
 
     @Override
