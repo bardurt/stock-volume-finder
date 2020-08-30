@@ -32,7 +32,6 @@ public class YahooFinanceInteractor implements DataFetchInteractor {
         String timeTo = "" + yesterday.getEpochSecond();
         String timeFrom = "" + fiveYears.getEpochSecond();
 
-
         ticker = ticker.toUpperCase();
         String url = "https://query1.finance.yahoo.com/v7/finance/download/" + ticker + "?period1="+ timeFrom +"&period2=" + timeTo + "&interval=1d&events=history";
 

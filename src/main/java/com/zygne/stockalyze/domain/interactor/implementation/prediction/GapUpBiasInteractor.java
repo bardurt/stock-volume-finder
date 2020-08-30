@@ -1,13 +1,13 @@
 package com.zygne.stockalyze.domain.interactor.implementation.prediction;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.GapBiasInteractor;
 import com.zygne.stockalyze.domain.model.GapDetails;
 import com.zygne.stockalyze.domain.model.Node;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROD;
+import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROBABILITY;
 
 public class GapUpBiasInteractor implements GapBiasInteractor {
 
@@ -102,8 +102,8 @@ public class GapUpBiasInteractor implements GapBiasInteractor {
                 bias = minBias;
             }
 
-            if (n.probability >= MAX_PROD) {
-                n.probability = MAX_PROD;
+            if (n.probability >= MAX_PROBABILITY) {
+                n.probability = MAX_PROBABILITY;
             } else if(n.probability < 1){
                 n.probability = 1;
             }

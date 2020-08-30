@@ -1,6 +1,6 @@
 package com.zygne.stockalyze.domain.interactor.implementation.scripting;
 
-import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
+import com.zygne.stockalyze.domain.model.LiquidityZone;
 import com.zygne.stockalyze.domain.model.Node;
 
 import java.text.SimpleDateFormat;
@@ -12,9 +12,9 @@ public class TradingViewScriptInteractor implements ScriptInteractor {
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy : HH:mm:ss");
     private Callback callback;
     private String ticker;
-    private List<Node> data;
+    private List<LiquidityZone> data;
 
-    public TradingViewScriptInteractor(Callback callback, String ticker, List<Node> data) {
+    public TradingViewScriptInteractor(Callback callback, String ticker, List<LiquidityZone> data) {
         this.callback = callback;
         this.ticker = ticker;
         this.data = data;
@@ -41,44 +41,40 @@ public class TradingViewScriptInteractor implements ScriptInteractor {
 
         double maxStrength = 0;
 
-        for (Node e : data) {
-            if (e.strength > maxStrength) {
-                maxStrength = e.strength;
+        for (LiquidityZone e : data) {
+            if (e.relativeVolume > maxStrength) {
+                maxStrength = e.relativeVolume;
             }
         }
 
-        for (Node e : data) {
+        for (LiquidityZone e : data) {
             String color = "color.aqua";
             int trans = 5;
             int lineWidth = 1;
 
-            if (e.origin && e.pull < 1) {
-                continue;
-            }
-
-            if (e.strength > (maxStrength * 0.6)) {
+            if (e.relativeVolume > (maxStrength * 0.5)) {
 
                 lineWidth = 2;
-                color = "color.green";
-
-                if (e.probability > 90) {
-                    color = "color.orange";
-                }
+                color = "color.yellow";
             }
 
-            if (e.strength >= (maxStrength)) {
+            if (e.relativeVolume > (maxStrength * 0.8)) {
+
+                lineWidth = 2;
+                color = "color.orange";
+            }
+
+            if (e.relativeVolume >= (maxStrength)) {
 
                 lineWidth = 3;
                 color = "color.red";
             }
 
-
             trans = 25;
-
 
             stringBuilder.append("\n");
             stringBuilder.append("plot(");
-            stringBuilder.append((double) e.level / 100);
+            stringBuilder.append((double) e.price / 100);
             stringBuilder.append(", color=");
             stringBuilder.append(color);
             stringBuilder.append(", transp=");

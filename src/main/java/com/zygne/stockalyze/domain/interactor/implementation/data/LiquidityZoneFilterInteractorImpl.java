@@ -19,7 +19,7 @@ public class LiquidityZoneFilterInteractorImpl implements LiquidityZoneFilterInt
     @Override
     public void execute() {
 
-        double limit = 3;
+        double limit = 0;
 
         List<LiquidityZone> filtered = new ArrayList<>();
 

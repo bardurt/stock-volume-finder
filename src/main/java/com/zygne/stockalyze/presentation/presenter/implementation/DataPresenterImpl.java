@@ -3,28 +3,22 @@ package com.zygne.stockalyze.presentation.presenter.implementation;
 import com.zygne.stockalyze.domain.interactor.implementation.FileCreatorInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.*;
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.*;
-import com.zygne.stockalyze.domain.interactor.implementation.prediction.*;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.TradingViewScriptInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.StatisticsInteractorImpl;
 import com.zygne.stockalyze.domain.model.*;
-import com.zygne.stockalyze.presentation.presenter.base.MainPresenter;
+import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-public class MainPresenterImpl implements MainPresenter,
+public class DataPresenterImpl implements DataPresenter,
         VolumePriceInteractor.Callback,
         VolumePriceGroupInteractor.Callback,
         LiquidityZoneInteractor.Callback,
         LiquidityZoneFilterInteractor.Callback,
         StatisticsInteractor.Callback,
-        NodeInteractor.Callback,
-        PredictionInteractor.Callback,
-        ProbabilityInteractor.Callback,
-        TrendBiasInteractor.Callback,
-        NewsBiasInteractor.Callback,
         DataSourceInteractor.Callback,
         DataFetchInteractor.Callback,
         HistogramInteractor.Callback,
@@ -33,21 +27,30 @@ public class MainPresenterImpl implements MainPresenter,
         StockFloatInteractor.Callback,
         TrendInteractor.Callback,
         GapRateInteractor.Callback,
-        GapBiasInteractor.Callback,
-        StrongestPullBiasInteractor.Callback{
+        TopLiquidityZonesInteractorImpl.Callback{
+
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
+
+    private View view;
+
     private String ticker = "";
     private int timeSpan = 0;
     private Statistics statistics;
     private int stockFloat;
     private GapDetails gapDetails = null;
-    private final PredictionData predictionData = new PredictionData();
+    private final int openPrice;
     private List<Histogram> histogramList;
+    private List<LiquidityZone> liquidityZoneList;
+
+    public DataPresenterImpl(View view, String ticker, int openPrice) {
+        this.view = view;
+        this.openPrice = openPrice;
+        this.ticker = ticker;
+    }
 
     @Override
-    public void start(String ticker, int openPrice) {
-        predictionData.currentPrice = openPrice;
+    public void start() {
         new DataSourceInteractorImpl(this, ticker).execute();
     }
 
@@ -98,9 +101,8 @@ public class MainPresenterImpl implements MainPresenter,
     @Override
     public void onLiquidityZonesFiltered(List<LiquidityZone> data) {
         printList(data);
-        if (predictionData.currentPrice > 0) {
-            new NodeInteractorImpl(this, data, predictionData.currentPrice).execute();
-        }
+        this.liquidityZoneList = data;
+        new TopLiquidityZonesInteractorImpl(this, liquidityZoneList, 10).execute();
     }
 
     private void printList(List<LiquidityZone> data) {
@@ -115,9 +117,9 @@ public class MainPresenterImpl implements MainPresenter,
         System.out.println("Gap Details");
         System.out.printf("%-16s%.2f\n", "Current Gap", gapDetails.currentGap);
 
-        if(gapDetails.isGapper()) {
+        if (gapDetails.isGapper()) {
             System.out.println();
-            System.out.printf("%s%.2f%s\n", "Gap History for ", gapDetails.minGap, "+ gappers ");
+            System.out.printf("%s%.2f%s\n", "Gap History for ", GapDetails.minGap, "+ gappers ");
             System.out.printf("%-16s%s\n", "Gap Count", gapDetails.gapCount);
             System.out.printf("%-16s%.2f\n", "High 10%", gapDetails.gap10);
             System.out.printf("%-16s%.2f\n", "High 20%", gapDetails.gap20);
@@ -149,50 +151,6 @@ public class MainPresenterImpl implements MainPresenter,
     }
 
     @Override
-    public void onPredictionComplete(List<Node> data) {
-        printNodes(data);
-        TradingViewScriptInteractor tradingViewScriptInteractor = new TradingViewScriptInteractor(this, ticker, data);
-        tradingViewScriptInteractor.execute();
-    }
-
-    @Override
-    public void onNodesCreated(List<Node> data) {
-        new ProbabilityInteractor(this, data).execute();
-    }
-
-    @Override
-    public void onProbabilityCreated(List<Node> data) {
-        new StrongestPullBiasInteractor(this, data).execute();
-    }
-
-    @Override
-    public void onStrongestPullBiasCreated(List<Node> data) {
-        new TrendBiasInteractor(this, data, predictionData.trend).execute();
-    }
-
-    @Override
-    public void onTrendBiasCreated(List<Node> data) {
-        new NewsBiasInteractor(this, data, predictionData.news).execute();
-    }
-
-    @Override
-    public void onNewsBiasCreated(List<Node> data) {
-        new GapUpBiasInteractor(this, data, gapDetails).execute();
-    }
-
-    private void printNodes(List<Node> data) {
-        System.out.println("Prediction : " + ticker);
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-12s\n", "Price", "Change", "Prediction");
-        System.out.println("-----------------------------------------------------------------------------");
-        for (Node e : data) {
-            System.out.printf("%-16s%-12.2f%-12.2f%-12s\n", e.level, e.change, e.prediction, e.note);
-        }
-        System.out.println("-----------------------------------------------------------------------------");
-
-    }
-
-    @Override
     public void onScriptCreated(String script, String name) {
         new FileCreatorInteractor(this, script, name).execute();
     }
@@ -200,23 +158,23 @@ public class MainPresenterImpl implements MainPresenter,
     @Override
     public void onFileCreated(String message) {
         System.out.println("SCRIPT CREATED : " + message);
+        System.out.println();
+        view.onDataPresenterCompleted(ticker, liquidityZoneList, statistics, gapDetails);
     }
 
     @Override
     public void onTrendCalculated(Trend trend, List<Histogram> data) {
-        new GapRateInteractorImpl(this, data, predictionData.currentPrice).execute();
+        new GapRateInteractorImpl(this, data, openPrice).execute();
     }
 
     @Override
     public void onGapRateCalculated(GapDetails gapDetails, List<Histogram> data) {
         this.gapDetails = gapDetails;
-        this.predictionData.gapRate = gapDetails.gapBull;
         new VolumePriceInteractorImpl(this, data).execute();
     }
 
     @Override
-    public void onGapBiasCreated(List<Node> data) {
-        new PredictionInteractor(this, data).execute();
+    public void onTopLiquidityZonesFound(List<LiquidityZone> data) {
+        new TradingViewScriptInteractor(this, ticker, data).execute();
     }
-
 }

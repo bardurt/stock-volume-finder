@@ -53,7 +53,7 @@ public class PredictionInteractor implements Interactor {
         List<Node> filteredList = new ArrayList<>();
 
         for(Node e : data){
-            if(e.prediction > 10){
+            if(e.prediction > 25){
                 filteredList.add(e);
             }
         }

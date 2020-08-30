@@ -1,17 +1,17 @@
 package com.zygne.stockalyze.domain.interactor.implementation.prediction;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.PointInteractor;
 import com.zygne.stockalyze.domain.model.Node;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProbabilityInteractor implements Interactor {
+public class PointInteractorImpl implements PointInteractor {
 
     private Callback callback;
     private List<Node> data;
 
-    public ProbabilityInteractor(Callback callback, List<Node> data){
+    public PointInteractorImpl(Callback callback, List<Node> data) {
         this.callback = callback;
         this.data = data;
     }
@@ -37,8 +37,6 @@ public class ProbabilityInteractor implements Interactor {
             }
         }
 
-
-
         List<Node> upperPull = new ArrayList<>();
 
         for(int i = originIndex; i > -1; i--){
@@ -60,8 +58,8 @@ public class ProbabilityInteractor implements Interactor {
             lowerPull.add(data.get(i));
         }
 
-        calculateProbability(upperPull, totalPull);
-        calculateProbability(lowerPull, totalPull);
+        calculatePoints(upperPull);
+        calculatePoints(lowerPull);
 
         List<Node> filteredList = new ArrayList<>();
 
@@ -71,34 +69,14 @@ public class ProbabilityInteractor implements Interactor {
             }
         }
 
-        callback.onProbabilityCreated(filteredList);
-
+        callback.onPointsCreated(filteredList);
     }
 
-    private void calculateProbability(List<Node> data, double pull){
-
-        // starting probability for first item
-        double probability = 100;
-
-        // how many levels have we moved through
-        int movement = 0;
-
-        // how much drag, counter force
-        double drag = 0.1d;
+    private void calculatePoints(List<Node> data){
 
         for (Node datum : data) {
-            movement++;
 
-            drag += movement * 0.025;
-
-            datum.probability -= drag;
-
-            drag += (datum.pull / pull);
-
+            datum.probability = (99 - (datum.change * 0.6));
         }
-    }
-
-    public interface Callback {
-        void onProbabilityCreated(List<Node> data);
     }
 }

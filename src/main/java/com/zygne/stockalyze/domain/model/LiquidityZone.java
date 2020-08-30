@@ -1,5 +1,7 @@
 package com.zygne.stockalyze.domain.model;
 
+import java.util.Comparator;
+
 public class LiquidityZone implements Comparable {
 
     public int price;
@@ -25,5 +27,13 @@ public class LiquidityZone implements Comparable {
         }
 
         return -1;
+    }
+
+    public static final class VolumeComparator implements Comparator<LiquidityZone>{
+
+        @Override
+        public int compare(LiquidityZone o1, LiquidityZone o2) {
+            return Long.compare(o1.totalSize, o2.totalSize);
+        }
     }
 }

@@ -1,12 +1,23 @@
 package com.zygne.stockalyze;
 
-import com.zygne.stockalyze.presentation.presenter.base.MainPresenter;
-import com.zygne.stockalyze.presentation.presenter.implementation.MainPresenterImpl;
+import com.zygne.stockalyze.domain.model.GapDetails;
+import com.zygne.stockalyze.domain.model.LiquidityZone;
+import com.zygne.stockalyze.domain.model.Statistics;
+import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
+import com.zygne.stockalyze.presentation.presenter.base.PredictionPresenter;
+import com.zygne.stockalyze.presentation.presenter.implementation.DataPresenterImpl;
+import com.zygne.stockalyze.presentation.presenter.implementation.PredictionPresenterImpl;
 
-public class App {
+import java.util.List;
+
+public class App implements DataPresenter.View {
 
 
-    private MainPresenter mainPresenter;
+    private DataPresenter dataPresenter;
+    private PredictionPresenter predictionPresenter;
+
+    private int currentPrice = 0;
+    private String ticker;
 
     public void start(String[] args) {
         if (args.length == 0) {
@@ -31,15 +42,19 @@ public class App {
             return;
         }
 
-        int currentPrice = 0;
-
         try {
             currentPrice = Integer.parseInt(args[1]);
         } catch (Exception ignored) {
         }
 
-        mainPresenter = new MainPresenterImpl();
-        mainPresenter.start(fileName, currentPrice);
+        dataPresenter = new DataPresenterImpl(this, fileName, currentPrice);
+        dataPresenter.start();
+    }
+
+    @Override
+    public void onDataPresenterCompleted(String ticker, List<LiquidityZone> data, Statistics statistics, GapDetails gapDetails) {
+        predictionPresenter = new PredictionPresenterImpl(ticker, data, gapDetails, currentPrice);
+        predictionPresenter.start();
     }
 
 }

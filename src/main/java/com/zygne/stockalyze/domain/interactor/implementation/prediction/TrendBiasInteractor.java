@@ -6,7 +6,7 @@ import com.zygne.stockalyze.domain.model.Node;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROD;
+import static com.zygne.stockalyze.domain.utils.Constants.MAX_PROBABILITY;
 
 public class TrendBiasInteractor implements Interactor {
 
@@ -76,8 +76,8 @@ public class TrendBiasInteractor implements Interactor {
 
         for (Node n : nodes) {
             n.probability *= bias;
-            if (n.probability >= MAX_PROD) {
-                n.probability = MAX_PROD;
+            if (n.probability >= MAX_PROBABILITY) {
+                n.probability = MAX_PROBABILITY;
             } else if(n.probability < 1){
                 n.probability = 1;
             }
