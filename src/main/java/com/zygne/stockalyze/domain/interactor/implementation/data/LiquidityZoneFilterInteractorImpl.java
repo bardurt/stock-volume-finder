@@ -8,8 +8,8 @@ import java.util.List;
 
 public class LiquidityZoneFilterInteractorImpl implements LiquidityZoneFilterInteractor {
 
-    private Callback callback;
-    private List<LiquidityZone> data;
+    private final Callback callback;
+    private final List<LiquidityZone> data;
 
     public LiquidityZoneFilterInteractorImpl(Callback callback, List<LiquidityZone> data) {
         this.callback = callback;

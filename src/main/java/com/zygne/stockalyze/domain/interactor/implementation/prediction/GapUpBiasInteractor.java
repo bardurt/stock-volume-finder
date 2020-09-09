@@ -14,9 +14,9 @@ public class GapUpBiasInteractor implements GapBiasInteractor {
     private static final double MAX_BIAS = 2;
     private static final double MAX_SKEW = 0.10;
 
-    private Callback callback;
-    private List<Node> data;
-    private GapDetails gapDetails;
+    private final Callback callback;
+    private final List<Node> data;
+    private final GapDetails gapDetails;
 
     public GapUpBiasInteractor(Callback callback, List<Node> data, GapDetails gapDetails) {
         this.callback = callback;

@@ -8,9 +8,9 @@ import java.util.List;
 
 public class GapRateInteractorImpl implements GapRateInteractor {
 
-    private Callback callback;
-    private List<Histogram> data;
-    private int currentPrice;
+    private final Callback callback;
+    private final List<Histogram> data;
+    private final int currentPrice;
 
     public GapRateInteractorImpl(Callback callback, List<Histogram> data, int currentPrice) {
         this.callback = callback;

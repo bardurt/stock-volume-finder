@@ -2,7 +2,7 @@ package com.zygne.stockalyze.domain.interactor.implementation.data;
 
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.HistogramInteractor;
 import com.zygne.stockalyze.domain.model.Histogram;
-import com.zygne.stockalyze.domain.model.TimeFrame;
+import com.zygne.stockalyze.domain.model.enums.TimeFrame;
 import com.zygne.stockalyze.domain.utils.TimeHelper;
 
 import java.util.ArrayList;
@@ -12,8 +12,8 @@ import java.util.List;
 public class HistogramInteractorImpl implements HistogramInteractor {
     private static final String delimiter = ",";
 
-    private Callback callback;
-    private List<String> entries;
+    private final Callback callback;
+    private final List<String> entries;
 
     public HistogramInteractorImpl(Callback callback, List<String> entries){
         this.callback = callback;
@@ -62,7 +62,7 @@ public class HistogramInteractorImpl implements HistogramInteractor {
             count++;
         }
 
-        int months = TimeHelper.getMonthsDifference(year1, year2);
+        int months = TimeHelper.getDaysDifference(year2, year1);
 
         Collections.sort(data);
 

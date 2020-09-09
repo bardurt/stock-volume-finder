@@ -20,12 +20,12 @@ public class Simulator implements
 
     private static final int MAX_ROUNDS = 96;
     private int rounds = 0;
-    public List<LiquidityZone> liquidityZones;
-    public int currentPrice;
-    public int trend;
-    public int news;
+    private List<LiquidityZone> liquidityZones;
+    private int currentPrice;
+    private int trend;
+    private int news;
 
-    public void start() {
+    private void start() {
         if (liquidityZones != null) {
             new NodeInteractorImpl(this, liquidityZones, currentPrice).execute();
         }

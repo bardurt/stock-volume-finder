@@ -9,9 +9,9 @@ import java.util.List;
 
 public class TopLiquidityZonesInteractorImpl implements TopLiquidityZonesInteractor {
 
-    private Callback callback;
-    private List<LiquidityZone> data;
-    private int maxAmount;
+    private final Callback callback;
+    private final List<LiquidityZone> data;
+    private final int maxAmount;
 
     public TopLiquidityZonesInteractorImpl(Callback callback, List<LiquidityZone> data, int maxAmount) {
         this.callback = callback;
@@ -34,12 +34,12 @@ public class TopLiquidityZonesInteractorImpl implements TopLiquidityZonesInterac
         for(LiquidityZone e : zones){
             filteredList.add(e);
             count++;
-            if (count > maxAmount){
+            if (count >= maxAmount){
                 break;
             }
         }
 
-        callback.onTopLiquidityZonesFound(filteredList);
+        callback.onTopLiquidityZonesFound(filteredList, count);
 
     }
 }

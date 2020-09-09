@@ -1,5 +1,7 @@
 package com.zygne.stockalyze.domain.model;
 
+import com.zygne.stockalyze.domain.model.enums.TimeFrame;
+
 public class Histogram implements Comparable{
     public long timeStamp;
     public int open;
@@ -8,16 +10,7 @@ public class Histogram implements Comparable{
     public int close;
     public long volume;
     public TimeFrame timeFrame;
-
-    public Trend getTrend(){
-        if(open < close){
-            return Trend.Up;
-        } else if (open > close){
-            return Trend.Down;
-        } else {
-            return Trend.Consolidation;
-        }
-    }
+    public double decay = 1;
 
     @Override
     public int compareTo(Object o) {

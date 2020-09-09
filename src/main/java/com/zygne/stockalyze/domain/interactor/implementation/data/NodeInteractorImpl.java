@@ -11,9 +11,9 @@ import java.util.List;
 
 public class NodeInteractorImpl implements NodeInteractor {
 
-    private Callback callback;
-    private List<LiquidityZone> zones;
-    private int currentLevel;
+    private final Callback callback;
+    private final List<LiquidityZone> zones;
+    private final int currentLevel;
 
     public NodeInteractorImpl(Callback callback, List<LiquidityZone> zones, int currentLevel){
         this.callback = callback;

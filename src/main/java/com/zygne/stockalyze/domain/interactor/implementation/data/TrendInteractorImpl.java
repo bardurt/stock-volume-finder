@@ -2,15 +2,15 @@ package com.zygne.stockalyze.domain.interactor.implementation.data;
 
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.TrendInteractor;
 import com.zygne.stockalyze.domain.model.Histogram;
-import com.zygne.stockalyze.domain.model.TimeFrame;
-import com.zygne.stockalyze.domain.model.Trend;
+import com.zygne.stockalyze.domain.model.enums.TimeFrame;
+import com.zygne.stockalyze.domain.model.enums.Trend;
 
 import java.util.List;
 
 public class TrendInteractorImpl implements TrendInteractor {
 
-    private Callback callback;
-    private List<Histogram> data;
+    private final Callback callback;
+    private final List<Histogram> data;
 
     public TrendInteractorImpl(Callback callback, List<Histogram> data) {
         this.callback = callback;
@@ -20,7 +20,7 @@ public class TrendInteractorImpl implements TrendInteractor {
     @Override
     public void execute() {
         if(data.isEmpty()){
-            callback.onTrendCalculated(Trend.Consolidation, data);
+            callback.onTrendCalculated(data);
             return;
         }
 
@@ -41,6 +41,6 @@ public class TrendInteractorImpl implements TrendInteractor {
 
         }
 
-        callback.onTrendCalculated(trend,data);
+        callback.onTrendCalculated(data);
     }
 }

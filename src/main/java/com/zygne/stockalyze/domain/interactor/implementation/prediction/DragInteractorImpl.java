@@ -8,8 +8,8 @@ import java.util.List;
 
 public class DragInteractorImpl implements DragInteractor {
 
-    private Callback callback;
-    private List<Node> data;
+    private final Callback callback;
+    private final List<Node> data;
 
     public DragInteractorImpl(Callback callback, List<Node> data) {
         this.callback = callback;
@@ -29,7 +29,7 @@ public class DragInteractorImpl implements DragInteractor {
             if(data.get(i).pull > highestPull){
                 highestPull = data.get(i).pull;
             }
-            totalPull += data.get(i).pull;
+            totalPull += data.get(i).strength;
             if(data.get(i).origin){
                 originIndex = i;
                 originLevel = data.get(i).level;
@@ -87,7 +87,7 @@ public class DragInteractorImpl implements DragInteractor {
 
             datum.probability -= drag;
 
-            drag += (datum.pull / pull);
+            drag += (datum.strength / pull);
 
         }
     }

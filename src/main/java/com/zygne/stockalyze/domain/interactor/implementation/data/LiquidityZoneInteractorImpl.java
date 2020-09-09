@@ -10,9 +10,9 @@ import java.util.List;
 
 public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
 
-    private Callback callback;
-    private List<VolumePriceGroup> data;
-    private Statistics statistics;
+    private final Callback callback;
+    private final List<VolumePriceGroup> data;
+    private final Statistics statistics;
 
     public LiquidityZoneInteractorImpl(Callback callback, List<VolumePriceGroup> data, Statistics statistics){
         this.callback = callback;

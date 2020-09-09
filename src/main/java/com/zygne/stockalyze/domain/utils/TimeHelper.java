@@ -3,44 +3,40 @@ package com.zygne.stockalyze.domain.utils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class TimeHelper {
 
+    private static final int MS_IN_SECONDS = 1000;
+
+    private static final int SEC_IN_DAY = 86400;
+
     private static final String timeFormat = "yyyy-MM-dd";
 
-    public static int getMonthsDifference(String start, String end){
+    public static int getDaysDifference(String start, String end) {
 
-        DateFormat df = new SimpleDateFormat(timeFormat);
+        long time1 = getTimeStamp(start);
+        long time2 = getTimeStamp(end);
 
-        Date startDate;
-        try {
-             startDate = df.parse(start);
-        } catch (ParseException e) {
-            return 0;
-        }
-
-        Date endDate;
-
-        try {
-            endDate = df.parse(end);
-        } catch (ParseException e) {
-            return 0;
-        }
-
-        int yearStart = startDate.getYear();
-        int yearEnd = endDate.getYear();
-
-        if(yearEnd > yearStart){
-            return (yearEnd-yearStart)*12;
-        } else if(yearStart > yearEnd){
-            return (yearStart-yearEnd)*12;
-        } else {
-            return 12;
-        }
+        return getDaysDifference(time1, time2);
     }
 
-    public static long getTimeStamp(String dateString){
+    public static int getDaysDifference(long start, long end) {
+
+        long diff = start - end;
+
+        long days = diff / (MS_IN_SECONDS * SEC_IN_DAY);
+
+        return (int) days;
+    }
+
+    public static long getTimeStamp(String dateString) {
         DateFormat df = new SimpleDateFormat(timeFormat);
 
         Date date;
@@ -50,8 +46,6 @@ public class TimeHelper {
             return 0;
         }
 
-
         return date.getTime();
-
     }
 }

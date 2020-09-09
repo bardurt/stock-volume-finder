@@ -10,9 +10,9 @@ public class FileCreatorInteractor implements Interactor {
 
     private static final String FOLDER_NAME = "scripts";
 
-    private Callback callback;
-    private String content;
-    private String name;
+    private final Callback callback;
+    private final String content;
+    private final String name;
 
     public FileCreatorInteractor(Callback callback, String content, String name) {
         this.callback = callback;
@@ -33,7 +33,7 @@ public class FileCreatorInteractor implements Interactor {
             FileWriter myWriter = new FileWriter(fileName);
             myWriter.write(content);
             myWriter.close();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
 
         }
 

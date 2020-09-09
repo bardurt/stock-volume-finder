@@ -14,7 +14,7 @@ public class YahooFinanceInteractor implements DataFetchInteractor {
 
     private static final String delimiter = ",";
 
-    private Callback callback;
+    private final Callback callback;
     private String ticker;
 
     public YahooFinanceInteractor(Callback callback, String ticker){

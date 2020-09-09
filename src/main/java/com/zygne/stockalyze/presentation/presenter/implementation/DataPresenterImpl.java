@@ -1,12 +1,14 @@
 package com.zygne.stockalyze.presentation.presenter.implementation;
 
 import com.zygne.stockalyze.domain.interactor.implementation.FileCreatorInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.MarketTimeInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.NyseMarketTimeInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.*;
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.*;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.scripting.TradingViewScriptInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.data.StatisticsInteractorImpl;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptInteractor;
 import com.zygne.stockalyze.domain.model.*;
+import com.zygne.stockalyze.domain.model.enums.MarketTime;
 import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 
 import java.text.SimpleDateFormat;
@@ -27,12 +29,14 @@ public class DataPresenterImpl implements DataPresenter,
         StockFloatInteractor.Callback,
         TrendInteractor.Callback,
         GapRateInteractor.Callback,
-        TopLiquidityZonesInteractorImpl.Callback{
+        TopLiquidityZonesInteractorImpl.Callback,
+        MarketTimeInteractor.Callback,
+        DecayInteractor.Callback{
 
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
 
-    private View view;
+    private final View view;
 
     private String ticker = "";
     private int timeSpan = 0;
@@ -42,6 +46,7 @@ public class DataPresenterImpl implements DataPresenter,
     private final int openPrice;
     private List<Histogram> histogramList;
     private List<LiquidityZone> liquidityZoneList;
+    private MarketTime marketTime;
 
     public DataPresenterImpl(View view, String ticker, int openPrice) {
         this.view = view;
@@ -51,7 +56,7 @@ public class DataPresenterImpl implements DataPresenter,
 
     @Override
     public void start() {
-        new DataSourceInteractorImpl(this, ticker).execute();
+        new NyseMarketTimeInteractor(this).execute();
     }
 
     @Override
@@ -80,7 +85,8 @@ public class DataPresenterImpl implements DataPresenter,
     public void onHistogramCreated(List<Histogram> data, int months) {
         this.timeSpan = months;
         this.histogramList = data;
-        new StatisticsInteractorImpl(this, data).execute();
+        new DecayInteractorImpl(this, data, timeSpan).execute();
+
     }
 
     @Override
@@ -102,29 +108,32 @@ public class DataPresenterImpl implements DataPresenter,
     public void onLiquidityZonesFiltered(List<LiquidityZone> data) {
         printList(data);
         this.liquidityZoneList = data;
-        new TopLiquidityZonesInteractorImpl(this, liquidityZoneList, 10).execute();
+        new TopLiquidityZonesInteractorImpl(this, liquidityZoneList, 20).execute();
     }
 
     private void printList(List<LiquidityZone> data) {
 
         System.out.println("\n\n");
         System.out.println("Report : " + ticker + " - " + dateFormat.format(Calendar.getInstance().getTime()));
+        System.out.println("Market Time : " + marketTime.label);
         System.out.println();
-        System.out.println("Ticker : " + ticker + "\t Time Span : " + timeSpan + " Months" + "\t Mean Vol : " + ((int) statistics.mean));
+        System.out.println("Ticker : " + ticker + "\t Time Span : " + timeSpan + " Days" + "\t Mean Vol : " + ((int) statistics.mean));
         System.out.printf("%-9s%,d\n", "Float", stockFloat);
         System.out.println();
 
-        System.out.println("Gap Details");
-        System.out.printf("%-16s%.2f\n", "Current Gap", gapDetails.currentGap);
+        if(marketTime == MarketTime.MARKET_OPEN || marketTime == MarketTime.PRE_MARKET) {
+            System.out.println("Gap Details");
+            System.out.printf("%-16s%.2f\n", "Current Gap", gapDetails.currentGap);
 
-        if (gapDetails.isGapper()) {
-            System.out.println();
-            System.out.printf("%s%.2f%s\n", "Gap History for ", GapDetails.minGap, "+ gappers ");
-            System.out.printf("%-16s%s\n", "Gap Count", gapDetails.gapCount);
-            System.out.printf("%-16s%.2f\n", "High 10%", gapDetails.gap10);
-            System.out.printf("%-16s%.2f\n", "High 20%", gapDetails.gap20);
-            System.out.printf("%-16s%.2f\n", "Bullish close", gapDetails.gap20);
-            System.out.println();
+            if (gapDetails.isGapper()) {
+                System.out.println();
+                System.out.printf("%s%.2f%s\n", "Gap History for ", GapDetails.minGap, "+ gappers ");
+                System.out.printf("%-16s%s\n", "Gap Count", gapDetails.gapCount);
+                System.out.printf("%-16s%.2f\n", "High 10%", gapDetails.gap10);
+                System.out.printf("%-16s%.2f\n", "High 20%", gapDetails.gap20);
+                System.out.printf("%-16s%.2f\n", "Bullish close", gapDetails.gap20);
+                System.out.println();
+            }
         }
 
         System.out.println("-----------------------------------------------------------------------------");
@@ -159,11 +168,11 @@ public class DataPresenterImpl implements DataPresenter,
     public void onFileCreated(String message) {
         System.out.println("SCRIPT CREATED : " + message);
         System.out.println();
-        view.onDataPresenterCompleted(ticker, liquidityZoneList, statistics, gapDetails);
+        view.onDataPresenterCompleted(ticker, liquidityZoneList, gapDetails, marketTime);
     }
 
     @Override
-    public void onTrendCalculated(Trend trend, List<Histogram> data) {
+    public void onTrendCalculated(List<Histogram> data) {
         new GapRateInteractorImpl(this, data, openPrice).execute();
     }
 
@@ -174,7 +183,32 @@ public class DataPresenterImpl implements DataPresenter,
     }
 
     @Override
-    public void onTopLiquidityZonesFound(List<LiquidityZone> data) {
-        new TradingViewScriptInteractor(this, ticker, data).execute();
+    public void onTopLiquidityZonesFound(List<LiquidityZone> data, int count) {
+
+        System.out.println();
+        System.out.println("TOP " + count + " zones : " + ticker);
+        System.out.println("-----------------------------------------------------------------------------");
+        System.out.printf("%-16s%-12s%-7s%-10s%-12s\n", "Price (Cents)", "Volume", "Count", "Rel Vol", "Note");
+        System.out.println("-----------------------------------------------------------------------------");
+
+        for (LiquidityZone e : data) {
+            System.out.printf("%-16s%-12s%-7s%-8.2f%-12s\n", e.price, e.totalSize, e.orderCount, e.relativeVolume, " " + e.note);
+        }
+
+        System.out.println("-----------------------------------------------------------------------------");
+        System.out.println();
+
+        new PineScriptInteractor(this, ticker, data).execute();
+    }
+
+    @Override
+    public void onMarketTimeValidated(MarketTime marketTime) {
+        this.marketTime = marketTime;
+        new DataSourceInteractorImpl(this, ticker).execute();
+    }
+
+    @Override
+    public void onDecayCalculated(List<Histogram> data) {
+        new StatisticsInteractorImpl(this, data).execute();
     }
 }

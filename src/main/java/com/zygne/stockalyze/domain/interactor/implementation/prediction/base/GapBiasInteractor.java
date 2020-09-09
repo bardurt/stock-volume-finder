@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface GapBiasInteractor extends Interactor {
 
-    public interface Callback{
+    interface Callback{
         void onGapBiasCreated(List<Node> data);
     }
 }

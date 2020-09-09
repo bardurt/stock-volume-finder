@@ -13,8 +13,8 @@ public class StrongestPullBiasInteractor implements Interactor {
     private static final double MAX_BIAS = 2;
     private static final double MAX_SKEW = 0.02;
 
-    private Callback callback;
-    private List<Node> data;
+    private final Callback callback;
+    private final List<Node> data;
 
     public StrongestPullBiasInteractor(Callback callback, List<Node> data) {
         this.callback = callback;

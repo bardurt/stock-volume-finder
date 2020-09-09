@@ -8,8 +8,8 @@ import java.util.*;
 
 public class VolumePriceGroupInteractorImpl implements VolumePriceGroupInteractor {
 
-    private Callback callback;
-    private List<VolumePriceLevel> data;
+    private final Callback callback;
+    private final List<VolumePriceLevel> data;
 
     public VolumePriceGroupInteractorImpl(Callback callback, List<VolumePriceLevel> data) {
         this.callback = callback;

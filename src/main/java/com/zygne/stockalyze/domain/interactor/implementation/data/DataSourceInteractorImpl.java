@@ -4,8 +4,8 @@ import com.zygne.stockalyze.domain.interactor.implementation.data.base.DataSourc
 
 public class DataSourceInteractorImpl implements DataSourceInteractor {
 
-    private Callback callback;
-    private String source;
+    private final Callback callback;
+    private final String source;
 
     public DataSourceInteractorImpl(Callback callback, String source){
         this.callback = callback;

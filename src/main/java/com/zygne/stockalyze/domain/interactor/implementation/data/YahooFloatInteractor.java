@@ -9,7 +9,7 @@ import java.util.Scanner;
 public class YahooFloatInteractor implements StockFloatInteractor {
 
     private static final String FLOAT_TAG = "floatShares";
-    private Callback callback;
+    private final Callback callback;
     private String ticker;
 
     public YahooFloatInteractor(Callback callback, String ticker){
@@ -53,7 +53,7 @@ public class YahooFloatInteractor implements StockFloatInteractor {
     }
 
     private int getFloatFromRaw(String raw){
-        String parts[] = raw.split(",",-1);
+        String[] parts = raw.split(",", -1);
 
         String floatString = "";
 
@@ -77,11 +77,6 @@ public class YahooFloatInteractor implements StockFloatInteractor {
 
     public static void main(String[] args) {
 
-        new YahooFloatInteractor(new Callback() {
-            @Override
-            public void onStockFloatFetched(int stockFloat) {
-                System.out.println("Stock float : " + stockFloat);
-            }
-        }, "vive").execute();
+        new YahooFloatInteractor(stockFloat -> System.out.println("Stock float : " + stockFloat), "vive").execute();
     }
 }

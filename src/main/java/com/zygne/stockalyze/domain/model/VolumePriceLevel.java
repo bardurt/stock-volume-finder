@@ -2,8 +2,8 @@ package com.zygne.stockalyze.domain.model;
 
 public class VolumePriceLevel {
 
-    public int price;
-    public long size;
+    public final int price;
+    public final long size;
 
     public VolumePriceLevel(int price, long size) {
         this.size = size;

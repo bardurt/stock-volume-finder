@@ -14,8 +14,8 @@ public class NewsBiasInteractor implements Interactor {
     private static final double MAX_SKEW = 0.02;
 
 
-    private Callback callback;
-    private List<Node> data;
+    private final Callback callback;
+    private final List<Node> data;
     private int bias = 0;
 
     public NewsBiasInteractor(Callback callback, List<Node> data, int bias) {

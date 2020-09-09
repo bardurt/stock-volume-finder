@@ -9,8 +9,8 @@ import java.util.List;
 
 public class VolumePriceInteractorImpl implements VolumePriceInteractor {
 
-    private Callback callback;
-    private List<Histogram> histogramList;
+    private final Callback callback;
+    private final List<Histogram> histogramList;
 
     public VolumePriceInteractorImpl(Callback callback, List<Histogram> histogramList) {
         this.callback = callback;
@@ -23,10 +23,12 @@ public class VolumePriceInteractorImpl implements VolumePriceInteractor {
         List<VolumePriceLevel> data = new ArrayList<>();
 
         for(Histogram e : histogramList){
-            VolumePriceLevel vp1 = new VolumePriceLevel(e.open, e.volume / 4);
-            VolumePriceLevel vp2 = new VolumePriceLevel(e.high, e.volume / 4);
-            VolumePriceLevel vp3 = new VolumePriceLevel(e.low, e.volume / 4);
-            VolumePriceLevel vp4 = new VolumePriceLevel(e.close, e.volume / 4);
+
+            long volume = (long) (e.volume * e.decay);
+            VolumePriceLevel vp1 = new VolumePriceLevel(e.open, (long) (volume * 0.3));
+            VolumePriceLevel vp2 = new VolumePriceLevel(e.high, (long) (volume * 0.2));
+            VolumePriceLevel vp3 = new VolumePriceLevel(e.low, (long) (volume * 0.2));
+            VolumePriceLevel vp4 = new VolumePriceLevel(e.close, (long) (volume * 0.3));
 
             data.add(vp1);
             data.add(vp2);

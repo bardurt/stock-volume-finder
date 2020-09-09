@@ -2,7 +2,7 @@ package com.zygne.stockalyze.domain.model;
 
 public class VolumePriceGroup implements Comparable{
 
-    public int price;
+    public final int price;
     public long totalSize;
     public int orderCount;
 

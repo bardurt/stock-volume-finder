@@ -7,8 +7,7 @@ import java.util.List;
 
 public interface TopLiquidityZonesInteractor extends Interactor {
 
-
     interface Callback {
-        void onTopLiquidityZonesFound(List<LiquidityZone> data);
+        void onTopLiquidityZonesFound(List<LiquidityZone> data, int count);
     }
 }

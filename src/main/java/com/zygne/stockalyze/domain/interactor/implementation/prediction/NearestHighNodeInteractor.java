@@ -8,8 +8,8 @@ import java.util.List;
 public class NearestHighNodeInteractor implements Interactor {
 
 
-    private Callback callback;
-    private List<Node> nodes;
+    private final Callback callback;
+    private final List<Node> nodes;
 
     public NearestHighNodeInteractor(Callback callback, List<Node> nodes){
         this.callback = callback;
@@ -33,13 +33,13 @@ public class NearestHighNodeInteractor implements Interactor {
 
         try {
             upper = nodes.get(originIndex-1);
-        } catch (Exception e){
+        } catch (Exception ignored){
 
         }
 
         try {
             lower = nodes.get(originIndex+1);
-        } catch (Exception e){
+        } catch (Exception ignored){
 
         }
 
@@ -60,7 +60,6 @@ public class NearestHighNodeInteractor implements Interactor {
 
         if(lower.probability < upper.probability){
             callback.onNearestHighNodeSelected(upper);
-            return;
         }
 
     }

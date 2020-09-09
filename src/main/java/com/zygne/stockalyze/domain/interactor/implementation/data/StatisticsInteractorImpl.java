@@ -1,6 +1,5 @@
 package com.zygne.stockalyze.domain.interactor.implementation.data;
 
-import com.zygne.stockalyze.domain.interactor.base.Interactor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.StatisticsInteractor;
 import com.zygne.stockalyze.domain.model.Histogram;
 import com.zygne.stockalyze.domain.model.Statistics;
@@ -9,8 +8,8 @@ import java.util.List;
 
 public class StatisticsInteractorImpl implements StatisticsInteractor {
 
-    private Callback callback;
-    private List<Histogram> data;
+    private final Callback callback;
+    private final List<Histogram> data;
 
     public StatisticsInteractorImpl(Callback callback, List<Histogram> data){
         this.callback = callback;

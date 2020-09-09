@@ -13,7 +13,7 @@ public class CsvReaderInteractor implements DataFetchInteractor {
     private static final String delimiter = ",";
 
     private final Callback callback;
-    private String filePath;
+    private final String filePath;
 
     public CsvReaderInteractor(Callback callback, String filePath) {
         this.callback = callback;

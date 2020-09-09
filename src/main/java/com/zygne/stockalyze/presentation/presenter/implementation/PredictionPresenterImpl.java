@@ -1,16 +1,13 @@
 package com.zygne.stockalyze.presentation.presenter.implementation;
 
-import com.zygne.stockalyze.domain.interactor.implementation.data.GapRateInteractorImpl;
 import com.zygne.stockalyze.domain.interactor.implementation.data.NodeInteractorImpl;
-import com.zygne.stockalyze.domain.interactor.implementation.data.VolumePriceInteractorImpl;
-import com.zygne.stockalyze.domain.interactor.implementation.data.base.GapRateInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.NodeInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.data.base.TrendInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.*;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.DragInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.GapBiasInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.PointInteractor;
 import com.zygne.stockalyze.domain.model.*;
+import com.zygne.stockalyze.domain.model.enums.MarketTime;
 import com.zygne.stockalyze.presentation.presenter.base.PredictionPresenter;
 
 import java.util.List;
@@ -18,6 +15,7 @@ import java.util.List;
 public class PredictionPresenterImpl implements PredictionPresenter, NodeInteractor.Callback,
         PredictionInteractor.Callback,
         ProbabilityInteractor.Callback,
+        ChangeInteractor.Callback,
         PointInteractor.Callback,
         DragInteractor.Callback,
         TrendBiasInteractor.Callback,
@@ -25,12 +23,14 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
         GapBiasInteractor.Callback,
         StrongestPullBiasInteractor.Callback {
 
-    private GapDetails gapDetails;
-    private int currentPrice;
-    private String ticker;
-    private List<LiquidityZone> liquidityZoneList;
+    private final MarketTime marketTime;
+    private final GapDetails gapDetails;
+    private final int currentPrice;
+    private final String ticker;
+    private final List<LiquidityZone> liquidityZoneList;
 
-    public PredictionPresenterImpl(String ticker, List<LiquidityZone> liquidityZoneList, GapDetails gapDetails, int currentPrice) {
+    public PredictionPresenterImpl(String ticker, List<LiquidityZone> liquidityZoneList, GapDetails gapDetails, int currentPrice, MarketTime marketTime) {
+        this.marketTime = marketTime;
         this.gapDetails = gapDetails;
         this.currentPrice = currentPrice;
         this.ticker = ticker;
@@ -44,13 +44,16 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
 
     @Override
     public void onNodesCreated(List<Node> data) {
-        new PointInteractorImpl(this, data).execute();
+        new ChangeInteractor(this, data).execute();
     }
-
 
     @Override
     public void onNewsBiasCreated(List<Node> data) {
-        new GapUpBiasInteractor(this, data, gapDetails).execute();
+        if (marketTime == MarketTime.MARKET_OPEN || marketTime == MarketTime.PRE_MARKET) {
+            new GapUpBiasInteractor(this, data, gapDetails).execute();
+        } else {
+            new PredictionInteractor(this, data).execute();
+        }
     }
 
     @Override
@@ -91,12 +94,17 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
     private void printNodes(List<Node> data) {
         System.out.println("Prediction : " + ticker);
         System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-12s\n", "Price", "Change", "Prediction");
+        System.out.printf("%-16s%-12s%-12s\n", "Price", "Change", "Score (0 / 100)");
         System.out.println("-----------------------------------------------------------------------------");
         for (Node e : data) {
             System.out.printf("%-16s%-12.2f%-12.2f%-12s\n", e.level, e.change, e.prediction, e.note);
         }
         System.out.println("-----------------------------------------------------------------------------");
 
+    }
+
+    @Override
+    public void onChangeCalculated(List<Node> data) {
+        new PointInteractorImpl(this, data).execute();
     }
 }

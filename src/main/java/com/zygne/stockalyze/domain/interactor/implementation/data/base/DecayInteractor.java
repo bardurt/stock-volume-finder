@@ -5,9 +5,10 @@ import com.zygne.stockalyze.domain.model.Histogram;
 
 import java.util.List;
 
-public interface TrendInteractor extends Interactor {
+public interface DecayInteractor extends Interactor {
+
 
     interface Callback{
-        void onTrendCalculated(List<Histogram> data);
+        void onDecayCalculated(List<Histogram> data);
     }
 }

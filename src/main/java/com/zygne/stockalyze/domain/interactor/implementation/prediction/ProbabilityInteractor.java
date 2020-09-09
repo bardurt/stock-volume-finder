@@ -8,8 +8,8 @@ import java.util.List;
 
 public class ProbabilityInteractor implements Interactor {
 
-    private Callback callback;
-    private List<Node> data;
+    private final Callback callback;
+    private final List<Node> data;
 
     public ProbabilityInteractor(Callback callback, List<Node> data){
         this.callback = callback;

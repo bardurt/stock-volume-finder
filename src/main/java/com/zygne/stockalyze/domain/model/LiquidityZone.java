@@ -4,11 +4,11 @@ import java.util.Comparator;
 
 public class LiquidityZone implements Comparable {
 
-    public int price;
-    public long totalSize;
-    public int orderCount;
+    public final int price;
+    public final long totalSize;
+    public final int orderCount;
     public double relativeVolume;
-    public String note = "";
+    public final String note = "";
 
     public LiquidityZone(int price, long totalSize, int orderCount) {
         this.price = price;

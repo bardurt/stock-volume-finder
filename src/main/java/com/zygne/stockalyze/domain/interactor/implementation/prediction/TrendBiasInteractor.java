@@ -13,8 +13,8 @@ public class TrendBiasInteractor implements Interactor {
     private static final double MAX_BIAS = 2;
     private static final double MAX_SKEW = 0.025;
 
-    private Callback callback;
-    private List<Node> data;
+    private final Callback callback;
+    private final List<Node> data;
     private int bias = 0;
 
     public TrendBiasInteractor(Callback callback, List<Node> data, int bias) {
