@@ -12,12 +12,13 @@ import java.util.Scanner;
 
 public class YahooFinanceInteractor implements DataFetchInteractor {
 
-    private static final String delimiter = ",";
+    private static final int END_TIME = 1;
+    private static final int START_TIME = 1826;
 
     private final Callback callback;
     private String ticker;
 
-    public YahooFinanceInteractor(Callback callback, String ticker){
+    public YahooFinanceInteractor(Callback callback, String ticker) {
         this.callback = callback;
         this.ticker = ticker;
     }
@@ -26,14 +27,14 @@ public class YahooFinanceInteractor implements DataFetchInteractor {
     public void execute() {
 
         Instant now = Instant.now();
-        Instant yesterday = now.minus(1, ChronoUnit.DAYS);
-        Instant fiveYears = now.minus(1826, ChronoUnit.DAYS);
+        Instant yesterday = now.minus(END_TIME, ChronoUnit.DAYS);
+        Instant fiveYears = now.minus(START_TIME, ChronoUnit.DAYS);
 
         String timeTo = "" + yesterday.getEpochSecond();
         String timeFrom = "" + fiveYears.getEpochSecond();
 
         ticker = ticker.toUpperCase();
-        String url = "https://query1.finance.yahoo.com/v7/finance/download/" + ticker + "?period1="+ timeFrom +"&period2=" + timeTo + "&interval=1d&events=history";
+        String url = "https://query1.finance.yahoo.com/v7/finance/download/" + ticker + "?period1=" + timeFrom + "&period2=" + timeTo + "&interval=1d&events=history";
 
         System.out.println("Fetching data from " + url);
 
@@ -48,19 +49,19 @@ public class YahooFinanceInteractor implements DataFetchInteractor {
 
                 String data = inputStream.next();
 
-                if(count > 1){
+                if (count > 1) {
                     lines.add(data);
                 }
 
                 count++;
             }
             inputStream.close();
-        } catch (Exception e){
+        } catch (Exception e) {
             callback.onDataFetchError("Could not fetch data from : " + url);
             return;
         }
 
-        if(lines.isEmpty()){
+        if (lines.isEmpty()) {
             callback.onDataFetchError("Could not fetch data from : " + url);
             return;
         }

@@ -3,12 +3,6 @@ package com.zygne.stockalyze.domain.utils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class TimeHelper {

@@ -23,18 +23,21 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
         GapBiasInteractor.Callback,
         StrongestPullBiasInteractor.Callback {
 
+    private final PredictionPresenter.View view;
+
     private final MarketTime marketTime;
     private final GapDetails gapDetails;
     private final int currentPrice;
     private final String ticker;
     private final List<LiquidityZone> liquidityZoneList;
 
-    public PredictionPresenterImpl(String ticker, List<LiquidityZone> liquidityZoneList, GapDetails gapDetails, int currentPrice, MarketTime marketTime) {
-        this.marketTime = marketTime;
-        this.gapDetails = gapDetails;
-        this.currentPrice = currentPrice;
-        this.ticker = ticker;
-        this.liquidityZoneList = liquidityZoneList;
+    public PredictionPresenterImpl(View view, DataReport dataReport){
+        this.view = view;
+        this.marketTime = dataReport.marketTime;
+        this.gapDetails = dataReport.gapDetails;
+        this.currentPrice = dataReport.openPrice;
+        this.ticker = dataReport.ticker;
+        this.liquidityZoneList = dataReport.zones;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
 
     @Override
     public void onPredictionComplete(List<Node> data) {
-        printNodes(data);
+        view.onPredictionCompleted(data);
     }
 
     @Override
@@ -89,18 +92,6 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
     @Override
     public void onPointsCreated(List<Node> data) {
         new DragInteractorImpl(this, data).execute();
-    }
-
-    private void printNodes(List<Node> data) {
-        System.out.println("Prediction : " + ticker);
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-12s\n", "Price", "Change", "Score (0 / 100)");
-        System.out.println("-----------------------------------------------------------------------------");
-        for (Node e : data) {
-            System.out.printf("%-16s%-12.2f%-12.2f%-12s\n", e.level, e.change, e.prediction, e.note);
-        }
-        System.out.println("-----------------------------------------------------------------------------");
-
     }
 
     @Override

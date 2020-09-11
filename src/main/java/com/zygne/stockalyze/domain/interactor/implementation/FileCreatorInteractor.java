@@ -25,7 +25,7 @@ public class FileCreatorInteractor implements Interactor {
 
         File file = new File(FOLDER_NAME);
 
-        boolean dirCreated = file.mkdirs();
+        file.mkdirs();
 
         String fileName = file.getAbsolutePath() + "/" + name;
 

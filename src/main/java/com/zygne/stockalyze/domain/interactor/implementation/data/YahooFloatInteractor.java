@@ -47,8 +47,6 @@ public class YahooFloatInteractor implements StockFloatInteractor {
         if(floatString != null){
             int stockFloat = getFloatFromRaw(floatString);
             callback.onStockFloatFetched(stockFloat);
-        } else {
-
         }
     }
 

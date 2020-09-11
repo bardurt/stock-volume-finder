@@ -77,9 +77,6 @@ public class ProbabilityInteractor implements Interactor {
 
     private void calculateProbability(List<Node> data, double pull){
 
-        // starting probability for first item
-        double probability = 100;
-
         // how many levels have we moved through
         int movement = 0;
 

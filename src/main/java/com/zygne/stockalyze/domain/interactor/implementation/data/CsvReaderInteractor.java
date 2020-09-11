@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CsvReaderInteractor implements DataFetchInteractor {
-    private static final String delimiter = ",";
 
     private final Callback callback;
     private final String filePath;
@@ -41,7 +40,6 @@ public class CsvReaderInteractor implements DataFetchInteractor {
             try {
                 BufferedReader br = new BufferedReader(fileReader);
                 String line;
-                String[] tempArr;
                 int count = -1;
                 while ((line = br.readLine()) != null) {
                     count++;

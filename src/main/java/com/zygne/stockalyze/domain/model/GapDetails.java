@@ -2,7 +2,7 @@ package com.zygne.stockalyze.domain.model;
 
 public class GapDetails {
 
-    public static final double minGap = 1.2;
+    public static final double minGap = 1.1;
     public double currentGap = 0;
     public double gap10 = 0;
     public double gap20 = 0;

@@ -15,7 +15,7 @@ public class TrendBiasInteractor implements Interactor {
 
     private final Callback callback;
     private final List<Node> data;
-    private int bias = 0;
+    private final int bias;
 
     public TrendBiasInteractor(Callback callback, List<Node> data, int bias) {
         this.callback = callback;
