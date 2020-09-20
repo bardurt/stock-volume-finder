@@ -8,7 +8,7 @@ import java.util.List;
 
 public class DecayInteractorImpl implements DecayInteractor {
 
-    private static final double MAX_DECAY = 0.25;
+    private static final double MAX_DECAY = 0.7;
 
     private final Callback callback;
     private final List<Histogram> data;

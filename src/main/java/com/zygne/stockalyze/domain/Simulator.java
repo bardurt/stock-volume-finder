@@ -1,6 +1,6 @@
 package com.zygne.stockalyze.domain;
 
-import com.zygne.stockalyze.domain.interactor.implementation.data.NodeInteractorImpl;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.NodeInteractorImpl;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.NearestHighNodeInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.NewsBiasInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.ProbabilityInteractor;

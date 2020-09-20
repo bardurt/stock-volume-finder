@@ -1,21 +1,23 @@
 package com.zygne.stockalyze.domain.interactor.implementation.scripting;
 
-import com.zygne.stockalyze.domain.model.LiquidityZone;
+import com.zygne.stockalyze.domain.model.graphics.ChartLine;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-public class PineScriptInteractor implements ScriptInteractor {
+public class PineScriptLineInteractor implements ScriptInteractor {
 
     private static final String EXTENSION = ".pine";
 
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy : HH:mm:ss");
     private final Callback callback;
+    private final String name;
     private final String ticker;
-    private final List<LiquidityZone> data;
+    private final List<ChartLine> data;
 
-    public PineScriptInteractor(Callback callback, String ticker, List<LiquidityZone> data) {
+    public PineScriptLineInteractor(Callback callback, String name, String ticker, List<ChartLine> data) {
         this.callback = callback;
+        this.name = name;
         this.ticker = ticker;
         this.data = data;
     }
@@ -23,59 +25,61 @@ public class PineScriptInteractor implements ScriptInteractor {
     @Override
     public void execute() {
 
-        String scriptName = "liquidity_zones_" + ticker + EXTENSION;
+        String scriptName = name + "_" + ticker + EXTENSION;
 
         String time = simpleDateFormat.format(System.currentTimeMillis());
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("//@version=4");
         stringBuilder.append("\n");
-        stringBuilder.append("// Liquidity zones for : ").append(ticker);
+        stringBuilder.append("// Ticker : ").append(ticker);
         stringBuilder.append("\n");
         stringBuilder.append("// Author : Barthur").append(" - ").append(time);
         stringBuilder.append("\n");
-        stringBuilder.append("study(\"Liquidity Zones - ").append(ticker).append("\",").append(" overlay=true)");
+        stringBuilder.append("study(\"").append(name).append(" -  ").append(ticker).append("\",").append(" overlay=true)");
 
         double maxStrength = 0;
 
-        for (LiquidityZone e : data) {
-            if (e.relativeVolume > maxStrength) {
-                maxStrength = e.relativeVolume;
+        for (ChartLine e : data) {
+            if (e.strength > maxStrength) {
+                maxStrength = e.strength;
             }
         }
 
-        for (LiquidityZone e : data) {
+        for (ChartLine e : data) {
             String color = "color.aqua";
             int trans = 25;
             int lineWidth = 1;
 
-            if (e.relativeVolume > (maxStrength * 0.7)) {
+            if (e.strength > (maxStrength * 0.5)) {
                 lineWidth = 2;
                 color = "color.yellow";
             }
 
-            if (e.relativeVolume > (maxStrength * 0.9)) {
+            if (e.strength > (maxStrength * 0.7)) {
                 lineWidth = 2;
                 color = "color.orange";
             }
 
-            if (e.relativeVolume >= (maxStrength)) {
+            if (e.strength >= (maxStrength)) {
                 lineWidth = 3;
                 color = "color.red";
             }
 
             stringBuilder.append("\n");
-            stringBuilder.append("plot(");
-            stringBuilder.append((double) e.price / 100);
+            stringBuilder.append("hline(");
+            stringBuilder.append(e.level);
             stringBuilder.append(", color=");
             stringBuilder.append(color);
-            stringBuilder.append(", transp=");
-            stringBuilder.append(trans);
             stringBuilder.append(", linewidth=");
             stringBuilder.append(lineWidth);
+            stringBuilder.append(", linestyle=hline.style_solid");
             stringBuilder.append(")");
 
         }
+        stringBuilder.append("\n");
+
+        stringBuilder.append("plot(close)");
 
         callback.onScriptCreated(stringBuilder.toString(), scriptName);
     }

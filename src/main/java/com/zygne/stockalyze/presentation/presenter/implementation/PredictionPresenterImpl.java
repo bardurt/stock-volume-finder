@@ -1,18 +1,24 @@
 package com.zygne.stockalyze.presentation.presenter.implementation;
 
-import com.zygne.stockalyze.domain.interactor.implementation.data.NodeInteractorImpl;
-import com.zygne.stockalyze.domain.interactor.implementation.data.base.NodeInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.ChartLineInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.FileCreatorInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.NodeChartLineInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.NodeInteractorImpl;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.*;
 import com.zygne.stockalyze.domain.interactor.implementation.prediction.*;
-import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.DragInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.GapBiasInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.PointInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptLineInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptZoneInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
 import com.zygne.stockalyze.domain.model.*;
 import com.zygne.stockalyze.domain.model.enums.MarketTime;
+import com.zygne.stockalyze.domain.model.graphics.ChartLine;
 import com.zygne.stockalyze.presentation.presenter.base.PredictionPresenter;
 
 import java.util.List;
 
-public class PredictionPresenterImpl implements PredictionPresenter, NodeInteractor.Callback,
+public class PredictionPresenterImpl implements PredictionPresenter,
+        NodeInteractor.Callback,
+        NodeFilterInteractor.Callback,
         PredictionInteractor.Callback,
         ProbabilityInteractor.Callback,
         ChangeInteractor.Callback,
@@ -21,15 +27,22 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
         TrendBiasInteractor.Callback,
         NewsBiasInteractor.Callback,
         GapBiasInteractor.Callback,
-        StrongestPullBiasInteractor.Callback {
+        StrongestPullBiasInteractor.Callback,
+        ChartLineInteractor.Callback,
+        ScriptInteractor.Callback,
+        FileCreatorInteractor.Callback{
 
     private final PredictionPresenter.View view;
+
+    private List<Node> nodes;
 
     private final MarketTime marketTime;
     private final GapDetails gapDetails;
     private final int currentPrice;
     private final String ticker;
     private final List<LiquidityZone> liquidityZoneList;
+    private final List<PowerZone> powerZones;
+    private final String folder;
 
     public PredictionPresenterImpl(View view, DataReport dataReport){
         this.view = view;
@@ -38,6 +51,8 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
         this.currentPrice = dataReport.openPrice;
         this.ticker = dataReport.ticker;
         this.liquidityZoneList = dataReport.zones;
+        this.powerZones = dataReport.powerZones;
+        this.folder = dataReport.folder;
     }
 
     @Override
@@ -47,6 +62,11 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
 
     @Override
     public void onNodesCreated(List<Node> data) {
+        new NodeFilterInteractorImpl(this, data).execute();
+    }
+
+    @Override
+    public void onNodesFiltered(List<Node> data) {
         new ChangeInteractor(this, data).execute();
     }
 
@@ -61,7 +81,8 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
 
     @Override
     public void onPredictionComplete(List<Node> data) {
-        view.onPredictionCompleted(data);
+        this.nodes = data;
+        new NodeChartLineInteractor(this, data).execute();
     }
 
     @Override
@@ -97,5 +118,20 @@ public class PredictionPresenterImpl implements PredictionPresenter, NodeInterac
     @Override
     public void onChangeCalculated(List<Node> data) {
         new PointInteractorImpl(this, data).execute();
+    }
+
+    @Override
+    public void onChartLineCreated(List<ChartLine> lines) {
+        new PineScriptLineInteractor(this, "prediction", ticker, lines).execute();
+    }
+
+    @Override
+    public void onScriptCreated(String script, String name) {
+        new FileCreatorInteractor(this, script, folder, name).execute();
+    }
+
+    @Override
+    public void onFileCreated(String message) {
+        view.onPredictionCompleted(nodes);
     }
 }

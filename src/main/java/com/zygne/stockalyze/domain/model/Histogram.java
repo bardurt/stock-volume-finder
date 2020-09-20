@@ -17,4 +17,5 @@ public class Histogram implements Comparable{
         long timeB = ((Histogram)o).timeStamp;
         return Long.compare(timeStamp, timeB);
     }
+
 }

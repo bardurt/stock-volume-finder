@@ -12,22 +12,21 @@ public class FileCreatorInteractor implements Interactor {
 
     private final Callback callback;
     private final String content;
+    private final String folder;
     private final String name;
 
-    public FileCreatorInteractor(Callback callback, String content, String name) {
+    public FileCreatorInteractor(Callback callback, String content, String folder, String name) {
         this.callback = callback;
         this.content = content;
+        this.folder = folder;
         this.name = name;
     }
 
     @Override
     public void execute() {
 
-        File file = new File(FOLDER_NAME);
 
-        file.mkdirs();
-
-        String fileName = file.getAbsolutePath() + "/" + name;
+        String fileName = folder + "/" + name;
 
         try {
             FileWriter myWriter = new FileWriter(fileName);

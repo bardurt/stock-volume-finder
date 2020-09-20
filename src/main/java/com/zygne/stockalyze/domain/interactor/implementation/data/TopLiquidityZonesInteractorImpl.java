@@ -25,6 +25,7 @@ public class TopLiquidityZonesInteractorImpl implements TopLiquidityZonesInterac
         List<LiquidityZone> zones = new ArrayList<>(data);
 
         zones.sort(new LiquidityZone.VolumeComparator());
+
         Collections.reverse(zones);
 
         List<LiquidityZone> filteredList = new ArrayList<>();

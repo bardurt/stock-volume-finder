@@ -1,14 +1,14 @@
 package com.zygne.stockalyze.presentation.presenter.implementation;
 
-import com.zygne.stockalyze.domain.interactor.implementation.FileCreatorInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.MarketTimeInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.NyseMarketTimeInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.*;
 import com.zygne.stockalyze.domain.interactor.implementation.data.*;
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.*;
-import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptLineInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptZoneInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
 import com.zygne.stockalyze.domain.model.*;
 import com.zygne.stockalyze.domain.model.enums.MarketTime;
+import com.zygne.stockalyze.domain.model.graphics.ChartLine;
 import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 
 import java.text.SimpleDateFormat;
@@ -30,7 +30,11 @@ public class DataPresenterImpl implements DataPresenter,
         GapRateInteractor.Callback,
         TopLiquidityZonesInteractorImpl.Callback,
         MarketTimeInteractor.Callback,
-        DecayInteractor.Callback {
+        DecayInteractor.Callback,
+        ChartLineInteractor.Callback,
+        PowerZoneInteractor.Callback,
+        PowerZoneFilterInteractor.Callback,
+        FolderCreatorInteractor.Callback{
 
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
@@ -40,6 +44,9 @@ public class DataPresenterImpl implements DataPresenter,
     private List<Histogram> histogramList;
 
     private DataReport dataReport = new DataReport();
+    private final int expectedScripts = 2;
+    private int scriptCount = 0;
+    private String folder = "";
 
     public DataPresenterImpl(View view, String ticker, int openPrice) {
         this.view = view;
@@ -71,6 +78,7 @@ public class DataPresenterImpl implements DataPresenter,
     @Override
     public void onDataFetched(List<String> entries, String ticker) {
         dataReport.ticker = ticker;
+
         new HistogramInteractorImpl(this, entries).execute();
     }
 
@@ -78,8 +86,7 @@ public class DataPresenterImpl implements DataPresenter,
     public void onHistogramCreated(List<Histogram> data, int months) {
         dataReport.timeSpan = months;
         this.histogramList = data;
-        new DecayInteractorImpl(this, data, months).execute();
-
+        new FolderCreatorInteractor(this, dataReport.ticker).execute();
     }
 
     @Override
@@ -116,12 +123,17 @@ public class DataPresenterImpl implements DataPresenter,
 
     @Override
     public void onScriptCreated(String script, String name) {
-        new FileCreatorInteractor(this, script, name).execute();
+        new FileCreatorInteractor(this, script, folder, name).execute();
     }
 
     @Override
     public void onFileCreated(String message) {
-        view.onDataPresenterCompleted(dataReport);
+        scriptCount++;
+        if(scriptCount == 1){
+            new PineScriptZoneInteractor(this, "power_zones", dataReport.ticker, dataReport.powerZones).execute();
+        } else {
+            view.onDataPresenterCompleted(dataReport);
+        }
     }
 
     @Override
@@ -138,8 +150,7 @@ public class DataPresenterImpl implements DataPresenter,
     @Override
     public void onTopLiquidityZonesFound(List<LiquidityZone> data, int count) {
         dataReport.topZones = data;
-
-        new PineScriptInteractor(this, dataReport.ticker, data).execute();
+        new LiquidityZoneChartLineInteractor(this, data).execute();
     }
 
     @Override
@@ -151,5 +162,28 @@ public class DataPresenterImpl implements DataPresenter,
     @Override
     public void onDecayCalculated(List<Histogram> data) {
         new StatisticsInteractorImpl(this, data).execute();
+    }
+
+    @Override
+    public void onChartLineCreated(List<ChartLine> lines) {
+        new PineScriptLineInteractor(this, "liqidity_zones", dataReport.ticker, lines).execute();
+    }
+
+    @Override
+    public void onPowerZonesCreated(List<PowerZone> data) {
+        new PowerZoneFilterInteractorImpl(this, data, dataReport.openPrice).execute();
+    }
+
+    @Override
+    public void onPowerZoneFiltered(List<PowerZone> data) {
+        dataReport.powerZones = data;
+        new DecayInteractorImpl(this, histogramList, dataReport.timeSpan).execute();
+    }
+
+    @Override
+    public void onFolderCreated(String path) {
+        this.folder = path;
+        this.dataReport.folder = folder;
+        new PowerZoneInteractorImpl(this, histogramList).execute();
     }
 }

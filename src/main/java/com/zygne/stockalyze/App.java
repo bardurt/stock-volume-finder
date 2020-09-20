@@ -2,6 +2,7 @@ package com.zygne.stockalyze;
 
 import com.zygne.stockalyze.domain.model.*;
 import com.zygne.stockalyze.domain.model.enums.MarketTime;
+import com.zygne.stockalyze.domain.utils.Timer;
 import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 import com.zygne.stockalyze.presentation.presenter.base.PredictionPresenter;
 import com.zygne.stockalyze.presentation.presenter.implementation.DataPresenterImpl;
@@ -17,6 +18,7 @@ public class App implements DataPresenter.View, PredictionPresenter.View {
 
     private int currentPrice = 0;
     private DataReport dataReport;
+    private Timer timer = new Timer();
 
     public void start(String[] args) {
         if (args.length == 0) {
@@ -41,6 +43,7 @@ public class App implements DataPresenter.View, PredictionPresenter.View {
         } catch (Exception ignored) {
         }
 
+        timer.start();
         DataPresenter dataPresenter = new DataPresenterImpl(this, fileName, currentPrice);
         dataPresenter.start();
     }
@@ -113,5 +116,9 @@ public class App implements DataPresenter.View, PredictionPresenter.View {
         }
 
         System.out.println("-----------------------------------------------------------------------------");
+
+        timer.stop();
+
+        System.out.println("Computation time : " + timer.getDuration() + " ms");
     }
 }

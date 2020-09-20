@@ -1,6 +1,6 @@
-package com.zygne.stockalyze.domain.interactor.implementation.data;
+package com.zygne.stockalyze.domain.interactor.implementation.prediction;
 
-import com.zygne.stockalyze.domain.interactor.implementation.data.base.NodeInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.prediction.base.NodeInteractor;
 import com.zygne.stockalyze.domain.model.Node;
 import com.zygne.stockalyze.domain.model.LiquidityZone;
 import com.zygne.stockalyze.domain.utils.Constants;
