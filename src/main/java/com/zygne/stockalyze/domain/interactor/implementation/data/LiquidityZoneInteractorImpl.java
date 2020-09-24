@@ -28,6 +28,7 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
         for(VolumePriceGroup e : data){
             LiquidityZone s = new LiquidityZone(e.price, e.totalSize, e.orderCount);
             s.relativeVolume = e.totalSize / statistics.mean;
+            s.volumePercentage = (e.totalSize / (double) statistics.cumulativeVolume) * 100;
             formatted.add(s);
         }
 

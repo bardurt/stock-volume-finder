@@ -23,13 +23,13 @@ public class PredictionInteractor implements Interactor {
         int originIndex = 0;
         double highestPull = 0.0d;
 
-        for(int i = 0; i < data.size(); i++){
+        for (int i = 0; i < data.size(); i++) {
 
-            if(data.get(i).pull > highestPull){
+            if (data.get(i).pull > highestPull) {
                 highestPull = data.get(i).pull;
             }
 
-            if(data.get(i).origin){
+            if (data.get(i).origin) {
                 originIndex = i;
                 data.get(i).prediction = 100;
             }
@@ -37,13 +37,13 @@ public class PredictionInteractor implements Interactor {
 
         List<Node> upperPull = new ArrayList<>();
 
-        for(int i = originIndex-1; i > -1; i--){
+        for (int i = originIndex - 1; i > -1; i--) {
             upperPull.add(data.get(i));
         }
 
         List<Node> lowerPull = new ArrayList<>();
 
-        for(int i = originIndex+1; i < data.size(); i++){
+        for (int i = originIndex + 1; i < data.size(); i++) {
             lowerPull.add(data.get(i));
         }
 
@@ -52,10 +52,11 @@ public class PredictionInteractor implements Interactor {
 
         List<Node> filteredList = new ArrayList<>();
 
-        for(Node e : data){
-            if(e.prediction > 25){
+        for (Node e : data) {
+            if(e.prediction > 25) {
                 filteredList.add(e);
             }
+
         }
 
         Collections.sort(filteredList);
@@ -63,18 +64,18 @@ public class PredictionInteractor implements Interactor {
         callback.onPredictionComplete(filteredList);
     }
 
-    private void calculateProbability(List<Node> data){
+    private void calculateProbability(List<Node> data) {
 
-        if(data.isEmpty()){
+        if (data.isEmpty()) {
             return;
         }
         data.get(0).prediction = data.get(0).probability;
-        for(int i = 1; i < data.size(); i++){
-            data.get(i).prediction = ((data.get(i).probability * data.get(i-1).probability) / 100);
+        for (int i = 1; i < data.size(); i++) {
+            data.get(i).prediction = ((data.get(i).probability * data.get(i - 1).probability) / 100);
         }
     }
 
-    public interface Callback{
+    public interface Callback {
         void onPredictionComplete(List<Node> data);
     }
 }

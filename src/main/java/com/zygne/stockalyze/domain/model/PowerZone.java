@@ -14,6 +14,11 @@ public class PowerZone {
     public long timeStamp;
 
 
+    public boolean inZone(int value){
+
+        return value <= end && value >= start;
+    }
+
     @Override
     public String toString() {
         String value = "";

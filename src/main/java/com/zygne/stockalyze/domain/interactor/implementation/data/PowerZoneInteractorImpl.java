@@ -10,6 +10,8 @@ import java.util.List;
 
 public class PowerZoneInteractorImpl implements PowerZoneInteractor {
 
+    private static final double LIMIT = 0.4D;
+
     private final Callback callback;
     private final List<Histogram> data;
 
@@ -31,7 +33,7 @@ public class PowerZoneInteractorImpl implements PowerZoneInteractor {
 
         for (CandleStick e : sticks) {
 
-            if (e.upperWick / (double) e.bodySize > 0.6) {
+            if (e.bodySize / (double) e.upperWick > LIMIT) {
 
                 PowerZone p = new PowerZone();
                 p.start = e.bodyTop;
@@ -42,7 +44,7 @@ public class PowerZoneInteractorImpl implements PowerZoneInteractor {
 
             }
 
-            if (e.lowerWick / (double) e.bodySize > 0.6) {
+            if (e.bodySize / (double) e.lowerWick > LIMIT) {
 
                 PowerZone p = new PowerZone();
                 p.start = e.bottom;

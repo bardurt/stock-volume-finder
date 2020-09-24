@@ -1,14 +1,17 @@
 package com.zygne.stockalyze.presentation.presenter.implementation;
 
 import com.zygne.stockalyze.domain.interactor.implementation.*;
+import com.zygne.stockalyze.domain.interactor.implementation.charting.ChartLineInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.charting.ChartZoneInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.charting.ChartZoneInteractorImpl;
+import com.zygne.stockalyze.domain.interactor.implementation.charting.LiquidityZoneChartLineInteractor;
 import com.zygne.stockalyze.domain.interactor.implementation.data.*;
 import com.zygne.stockalyze.domain.interactor.implementation.data.base.*;
-import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptLineInteractor;
-import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScriptZoneInteractor;
+import com.zygne.stockalyze.domain.interactor.implementation.scripting.PineScript2Interactor;
 import com.zygne.stockalyze.domain.interactor.implementation.scripting.ScriptInteractor;
 import com.zygne.stockalyze.domain.model.*;
 import com.zygne.stockalyze.domain.model.enums.MarketTime;
-import com.zygne.stockalyze.domain.model.graphics.ChartLine;
+import com.zygne.stockalyze.domain.model.graphics.ChartObject;
 import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 
 import java.text.SimpleDateFormat;
@@ -23,18 +26,16 @@ public class DataPresenterImpl implements DataPresenter,
         DataSourceInteractor.Callback,
         DataFetchInteractor.Callback,
         HistogramInteractor.Callback,
-        ScriptInteractor.Callback,
-        FileCreatorInteractor.Callback,
         StockFloatInteractor.Callback,
         TrendInteractor.Callback,
         GapRateInteractor.Callback,
         TopLiquidityZonesInteractorImpl.Callback,
         MarketTimeInteractor.Callback,
         DecayInteractor.Callback,
-        ChartLineInteractor.Callback,
         PowerZoneInteractor.Callback,
         PowerZoneFilterInteractor.Callback,
-        FolderCreatorInteractor.Callback{
+        RangeInteractor.Callback,
+        PowerRatioInteractor.Callback {
 
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
@@ -78,7 +79,6 @@ public class DataPresenterImpl implements DataPresenter,
     @Override
     public void onDataFetched(List<String> entries, String ticker) {
         dataReport.ticker = ticker;
-
         new HistogramInteractorImpl(this, entries).execute();
     }
 
@@ -86,7 +86,7 @@ public class DataPresenterImpl implements DataPresenter,
     public void onHistogramCreated(List<Histogram> data, int months) {
         dataReport.timeSpan = months;
         this.histogramList = data;
-        new FolderCreatorInteractor(this, dataReport.ticker).execute();
+        new PowerZoneInteractorImpl(this, histogramList).execute();
     }
 
     @Override
@@ -101,13 +101,19 @@ public class DataPresenterImpl implements DataPresenter,
 
     @Override
     public void onLiquidityZonesCreated(List<LiquidityZone> data) {
-        new LiquidityZoneFilterInteractorImpl(this, data).execute();
+        dataReport.zones = data;
+        new LiquidityZoneFilterInteractorImpl(this, data, dataReport.statistics).execute();
     }
 
     @Override
     public void onLiquidityZonesFiltered(List<LiquidityZone> data) {
-        dataReport.zones = data;
-        new TopLiquidityZonesInteractorImpl(this, data, 20).execute();
+        dataReport.filteredZones = data;
+
+        if (!data.isEmpty()) {
+            new RangeInteractorImpl(this, dataReport.filteredZones, dataReport.openPrice).execute();
+        } else {
+            new RangeInteractorImpl(this, dataReport.zones, dataReport.openPrice).execute();
+        }
     }
 
     @Override
@@ -122,21 +128,6 @@ public class DataPresenterImpl implements DataPresenter,
     }
 
     @Override
-    public void onScriptCreated(String script, String name) {
-        new FileCreatorInteractor(this, script, folder, name).execute();
-    }
-
-    @Override
-    public void onFileCreated(String message) {
-        scriptCount++;
-        if(scriptCount == 1){
-            new PineScriptZoneInteractor(this, "power_zones", dataReport.ticker, dataReport.powerZones).execute();
-        } else {
-            view.onDataPresenterCompleted(dataReport);
-        }
-    }
-
-    @Override
     public void onTrendCalculated(List<Histogram> data) {
         new GapRateInteractorImpl(this, data, dataReport.openPrice).execute();
     }
@@ -148,9 +139,9 @@ public class DataPresenterImpl implements DataPresenter,
     }
 
     @Override
-    public void onTopLiquidityZonesFound(List<LiquidityZone> data, int count) {
+    public void onTopLiquidityZonesFound(List<LiquidityZone> data) {
         dataReport.topZones = data;
-        new LiquidityZoneChartLineInteractor(this, data).execute();
+        new PowerRatioInteractorImpl(this, dataReport.powerZones, dataReport.filteredZones).execute();
     }
 
     @Override
@@ -165,25 +156,26 @@ public class DataPresenterImpl implements DataPresenter,
     }
 
     @Override
-    public void onChartLineCreated(List<ChartLine> lines) {
-        new PineScriptLineInteractor(this, "liqidity_zones", dataReport.ticker, lines).execute();
-    }
-
-    @Override
     public void onPowerZonesCreated(List<PowerZone> data) {
+        dataReport.powerZones = data;
         new PowerZoneFilterInteractorImpl(this, data, dataReport.openPrice).execute();
     }
 
     @Override
     public void onPowerZoneFiltered(List<PowerZone> data) {
-        dataReport.powerZones = data;
+        dataReport.filteredPowerZones = data;
         new DecayInteractorImpl(this, histogramList, dataReport.timeSpan).execute();
     }
 
     @Override
-    public void onFolderCreated(String path) {
-        this.folder = path;
-        this.dataReport.folder = folder;
-        new PowerZoneInteractorImpl(this, histogramList).execute();
+    public void onRangeGenerated(List<LiquidityZone> data) {
+        dataReport.range = data;
+        new TopLiquidityZonesInteractorImpl(this, dataReport.zones, 50).execute();
+    }
+
+    @Override
+    public void onPowerRatioCreated(List<LiquidityZone> data) {
+        dataReport.filteredZones = data;
+        view.onDataPresenterCompleted(dataReport);
     }
 }

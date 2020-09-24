@@ -9,7 +9,10 @@ public class DataReport {
     public String ticker;
     public int timeSpan;
     public List<LiquidityZone> zones;
+    public List<LiquidityZone> filteredZones;
+    public List<LiquidityZone> range;
     public List<PowerZone> powerZones;
+    public List<PowerZone> filteredPowerZones;
     public GapDetails gapDetails;
     public MarketTime marketTime;
     public Statistics statistics;

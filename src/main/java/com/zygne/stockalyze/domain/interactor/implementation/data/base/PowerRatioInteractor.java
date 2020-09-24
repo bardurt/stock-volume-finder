@@ -5,9 +5,9 @@ import com.zygne.stockalyze.domain.model.LiquidityZone;
 
 import java.util.List;
 
-public interface TopLiquidityZonesInteractor extends Interactor {
+public interface PowerRatioInteractor extends Interactor {
 
-    interface Callback {
-        void onTopLiquidityZonesFound(List<LiquidityZone> data);
+    interface Callback{
+        void onPowerRatioCreated(List<LiquidityZone> data);
     }
 }

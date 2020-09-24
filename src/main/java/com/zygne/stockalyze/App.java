@@ -1,7 +1,6 @@
 package com.zygne.stockalyze;
 
 import com.zygne.stockalyze.domain.model.*;
-import com.zygne.stockalyze.domain.model.enums.MarketTime;
 import com.zygne.stockalyze.domain.utils.Timer;
 import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 import com.zygne.stockalyze.presentation.presenter.base.PredictionPresenter;
@@ -60,59 +59,82 @@ public class App implements DataPresenter.View, PredictionPresenter.View {
         System.out.printf("%-9s%,d\n", "Float", dataReport.stockFloat);
         System.out.println();
 
-        if (dataReport.marketTime == MarketTime.MARKET_OPEN || dataReport.marketTime == MarketTime.PRE_MARKET) {
-            System.out.println("Gap Details");
-            System.out.printf("%-16s%.2f\n", "Current Gap", dataReport.gapDetails.currentGap);
+        System.out.println("Gap Details");
 
-            if (dataReport.gapDetails.isGapper()) {
-                System.out.println();
-                System.out.printf("%s%.2f%s\n", "Gap History for ", GapDetails.minGap, "+ gappers ");
-                System.out.printf("%-16s%s\n", "Gap Count", dataReport.gapDetails.gapCount);
-                System.out.printf("%-16s%.2f\n", "High 10%", dataReport.gapDetails.gap10);
-                System.out.printf("%-16s%.2f\n", "High 20%", dataReport.gapDetails.gap20);
-                System.out.printf("%-16s%.2f\n", "Bullish close", dataReport.gapDetails.gap20);
-                System.out.println();
+        System.out.println();
+        System.out.printf("%s%.2f%s\n", "Gap History for ", GapDetails.minGap, "+ gappers ");
+        System.out.printf("%-16s%s\n", "Gap Count", dataReport.gapDetails.gapCount);
+        System.out.printf("%-16s%.2f\n", "High 10%", dataReport.gapDetails.gap10);
+        System.out.printf("%-16s%.2f\n", "High 20%", dataReport.gapDetails.gap20);
+        System.out.printf("%-16s%.2f\n", "Bullish close", dataReport.gapDetails.gap20);
+        System.out.println();
+
+        System.out.println("Origin Price : " + dataReport.openPrice);
+        System.out.println();
+
+        double topCount = 0;
+
+        for(LiquidityZone e : dataReport.topZones){
+            topCount += e.volumePercentage;
+        }
+
+        System.out.printf("%-55s%-4s%-6.2f%-40s%-6s\n", "Supply Zones", "Top Zones ", topCount, "% Volume", "Range");
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "|");
+        System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "|");
+        System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "|");
+        System.out.println();
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+
+        for (int i = 0; i < dataReport.filteredZones.size(); i++) {
+
+            LiquidityZone lz = dataReport.filteredZones.get(i);
+            LiquidityZone tz = null;
+            LiquidityZone range = null;
+
+            if (i < dataReport.topZones.size() - 1) {
+                tz = dataReport.topZones.get(i);
             }
+
+            if (i < dataReport.range.size() - 1) {
+                range = dataReport.range.get(i);
+            }
+
+            System.out.printf("%-8s%-12s%-7s%-10.2f%-12.2f%5.2f%-2s", lz.price, lz.volume, lz.orderCount, lz.relativeVolume, lz.volumePercentage, lz.powerRatio, "|");
+
+            if(tz != null){
+                System.out.printf("%-8s%-12s%-7s%-10.2f%-12.2f%5.2f%-2s", tz.price, tz.volume, tz.orderCount, tz.relativeVolume, tz.volumePercentage, tz.powerRatio, "|");
+            } else {
+                System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "", "", "", "", "", "", "");
+            }
+
+            if(range != null){
+                System.out.printf("%-8s%-12s%-7s%-10.2f%-12.2f%5.2f", range.price, range.volume, range.orderCount, range.relativeVolume, range.volumePercentage, range.powerRatio);
+            }
+
+            System.out.println();
+
         }
 
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-7s%-10s%-12s\n", "Price (Cents)", "Volume", "Count", "Rel Vol", "Note");
-        System.out.println("-----------------------------------------------------------------------------");
-
-        for (LiquidityZone e : dataReport.zones) {
-            System.out.printf("%-16s%-12s%-7s%-8.2f%-12s\n", e.price, e.totalSize, e.orderCount, e.relativeVolume, " " + e.note);
-        }
-
-        System.out.println("-----------------------------------------------------------------------------");
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         System.out.println();
 
-        System.out.println("TOP " + dataReport.topZones.size() + " zones : " + dataReport.ticker);
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-7s%-10s%-12s\n", "Price (Cents)", "Volume", "Count", "Rel Vol", "Note");
-        System.out.println("-----------------------------------------------------------------------------");
-
-        for (LiquidityZone e : dataReport.topZones) {
-            System.out.printf("%-16s%-12s%-7s%-8.2f%-12s\n", e.price, e.totalSize, e.orderCount, e.relativeVolume, " " + e.note);
-        }
-
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.println();
-
-        if (currentPrice > 0) {
-            PredictionPresenter predictionPresenter = new PredictionPresenterImpl(this, dataReport);
-            predictionPresenter.start();
-        }
+//        if (currentPrice > 0) {
+//            PredictionPresenter predictionPresenter = new PredictionPresenterImpl(this, dataReport);
+//            predictionPresenter.start();
+//        }
     }
 
     @Override
     public void onPredictionCompleted(List<Node> nodes) {
         System.out.println("Prediction : " + dataReport.ticker);
         System.out.println("-----------------------------------------------------------------------------");
-        System.out.printf("%-16s%-12s%-12s\n", "Price", "Change", "Score (0 / 100)");
+        System.out.printf("%-16s%-12s%-18s%-12s\n", "Price", "Change", "Score (0 / 100)", "Buy / Sell");
         System.out.println("-----------------------------------------------------------------------------");
 
         for (Node e : nodes) {
-            System.out.printf("%-16s%-12.2f%-12.2f%-12s\n", e.level, e.change, e.prediction, e.note);
+            System.out.printf("%-16s%-12.2f%-18.2f%-12s%-12s\n", e.level, e.change, e.prediction, e.side, e.note);
         }
 
         System.out.println("-----------------------------------------------------------------------------");

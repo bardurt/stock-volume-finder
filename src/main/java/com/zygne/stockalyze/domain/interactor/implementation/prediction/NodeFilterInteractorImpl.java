@@ -27,17 +27,10 @@ public class NodeFilterInteractorImpl implements NodeFilterInteractor {
             }
         }
 
-        double limit = minStrength*20;
-
         List<Node> filteredList = new ArrayList<>();
 
         for (Node e : data){
-            if(e.strength > limit && !e.origin){
-               filteredList.add(e);
-            }
-            if(e.origin){
-                filteredList.add(e);
-            }
+            filteredList.add(e);
         }
 
         callback.onNodesFiltered(filteredList);

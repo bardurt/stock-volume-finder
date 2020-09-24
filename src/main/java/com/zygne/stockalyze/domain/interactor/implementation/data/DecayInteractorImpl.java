@@ -26,12 +26,12 @@ public class DecayInteractorImpl implements DecayInteractor {
         long now = System.currentTimeMillis();
 
         double decay;
-        for (Histogram e : data){
-
-            double diff = TimeHelper.getDaysDifference(now, e.timeStamp) / (double) timeFrame;
-            decay = 1 - (MAX_DECAY * diff);
-            e.decay = decay;
-        }
+//        for (Histogram e : data){
+//
+//            double diff = TimeHelper.getDaysDifference(now, e.timeStamp) / (double) timeFrame;
+//            decay = 1 - (MAX_DECAY * diff);
+//            e.decay = decay;
+//        }
 
         callback.onDecayCalculated(data);
     }

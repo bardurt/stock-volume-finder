@@ -30,17 +30,17 @@ public class TopLiquidityZonesInteractorImpl implements TopLiquidityZonesInterac
 
         List<LiquidityZone> filteredList = new ArrayList<>();
 
-        int count = 0;
+        double currentPercent = 0;
 
         for(LiquidityZone e : zones){
             filteredList.add(e);
-            count++;
-            if (count >= maxAmount){
+            currentPercent += e.volumePercentage;
+            if (currentPercent > maxAmount){
                 break;
             }
         }
 
-        callback.onTopLiquidityZonesFound(filteredList, count);
+        callback.onTopLiquidityZonesFound(filteredList);
 
     }
 }

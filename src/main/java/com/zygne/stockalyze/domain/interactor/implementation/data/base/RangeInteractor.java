@@ -5,9 +5,10 @@ import com.zygne.stockalyze.domain.model.LiquidityZone;
 
 import java.util.List;
 
-public interface TopLiquidityZonesInteractor extends Interactor {
+public interface RangeInteractor extends Interactor {
 
-    interface Callback {
-        void onTopLiquidityZonesFound(List<LiquidityZone> data);
+
+    interface Callback{
+        void onRangeGenerated(List<LiquidityZone> data);
     }
 }

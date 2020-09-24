@@ -9,6 +9,7 @@ import java.util.List;
 
 public class PowerZoneFilterInteractorImpl implements PowerZoneFilterInteractor {
 
+    private static final double LIMIT = 1.6;
     private Callback callback;
     private List<PowerZone> data;
     private int currentPrice = 0;
@@ -28,21 +29,38 @@ public class PowerZoneFilterInteractorImpl implements PowerZoneFilterInteractor 
         List<PowerZone> filteredList = new ArrayList<>();
 
         int count = 0;
+
+
+       if(currentPrice == 0){
+            for(PowerZone e : data){
+                filteredList.add(e);
+                count++;
+                if(count > 500){
+                    //break;
+                }
+            }
+
+
+            callback.onPowerZoneFiltered(filteredList);
+            return;
+       }
+
         for(PowerZone e : data){
 
             if(currentPrice > e.end){
-                if(currentPrice / (double) e.end < 1.1){
+                if(currentPrice / (double) e.end < LIMIT){
                     filteredList.add(e);
                 }
             } else if (currentPrice < e.start){
-                if(e.start / (double) currentPrice < 1.1){
+                if(e.start / (double) currentPrice < LIMIT){
                     filteredList.add(e);
                 }
             } else {
-                if(currentPrice <= e.end && currentPrice >= e.start){
+                if(e.inZone(currentPrice)){
                     filteredList.add(e);
                 }
             }
+
         }
 
         callback.onPowerZoneFiltered(filteredList);

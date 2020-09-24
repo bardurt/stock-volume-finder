@@ -5,14 +5,17 @@ import java.util.Comparator;
 public class LiquidityZone implements Comparable {
 
     public final int price;
-    public final long totalSize;
+    public final long volume;
     public final int orderCount;
     public double relativeVolume;
+    public double volumePercentage;
+    public double powerRatio;
+
     public final String note = "";
 
-    public LiquidityZone(int price, long totalSize, int orderCount) {
+    public LiquidityZone(int price, long volume, int orderCount) {
         this.price = price;
-        this.totalSize = totalSize;
+        this.volume = volume;
         this.orderCount = orderCount;
     }
 
@@ -33,7 +36,15 @@ public class LiquidityZone implements Comparable {
 
         @Override
         public int compare(LiquidityZone o1, LiquidityZone o2) {
-            return Long.compare(o1.totalSize, o2.totalSize);
+            return Long.compare(o1.volume, o2.volume);
+        }
+    }
+
+    public static final class PriceComparator implements Comparator<LiquidityZone>{
+
+        @Override
+        public int compare(LiquidityZone o1, LiquidityZone o2) {
+            return Integer.compare(o1.price, o2.price);
         }
     }
 }

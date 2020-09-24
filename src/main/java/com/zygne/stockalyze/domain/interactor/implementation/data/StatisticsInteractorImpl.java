@@ -42,6 +42,7 @@ public class StatisticsInteractorImpl implements StatisticsInteractor {
         statistics.mean = mean;
         statistics.variance = variance;
         statistics.standardDeviation = standardDeviation;
+        statistics.cumulativeVolume = totalShares;
 
         callback.onStatisticsCalculated(statistics);
     }
