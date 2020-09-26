@@ -6,6 +6,7 @@ import com.zygne.stockalyze.domain.model.VolumePriceGroup;
 import com.zygne.stockalyze.domain.model.LiquidityZone;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
@@ -30,6 +31,13 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
             s.relativeVolume = e.totalSize / statistics.mean;
             s.volumePercentage = (e.totalSize / (double) statistics.cumulativeVolume) * 100;
             formatted.add(s);
+        }
+
+        formatted.sort(new LiquidityZone.VolumeComparator());
+        Collections.reverse(formatted);
+
+        for(int i = 0; i < formatted.size(); i++){
+            formatted.get(i).rank = i+1;
         }
 
         callback.onLiquidityZonesCreated(formatted);

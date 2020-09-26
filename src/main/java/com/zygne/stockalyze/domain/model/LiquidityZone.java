@@ -10,6 +10,8 @@ public class LiquidityZone implements Comparable {
     public double relativeVolume;
     public double volumePercentage;
     public double powerRatio;
+    public boolean origin = false;
+    public int rank = 0;
 
     public final String note = "";
 
@@ -45,6 +47,14 @@ public class LiquidityZone implements Comparable {
         @Override
         public int compare(LiquidityZone o1, LiquidityZone o2) {
             return Integer.compare(o1.price, o2.price);
+        }
+    }
+
+    public static final class RankComparator implements Comparator<LiquidityZone>{
+
+        @Override
+        public int compare(LiquidityZone o1, LiquidityZone o2) {
+            return Integer.compare(o1.rank, o2.rank);
         }
     }
 }

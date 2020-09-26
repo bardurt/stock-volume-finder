@@ -10,7 +10,7 @@ import java.util.List;
 
 public class PowerZoneInteractorImpl implements PowerZoneInteractor {
 
-    private static final double LIMIT = 0.4D;
+    private static final double LIMIT = 0.25D;
 
     private final Callback callback;
     private final List<Histogram> data;

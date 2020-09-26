@@ -40,6 +40,8 @@ public class TopLiquidityZonesInteractorImpl implements TopLiquidityZonesInterac
             }
         }
 
+        filteredList.sort(new LiquidityZone.RankComparator());
+
         callback.onTopLiquidityZonesFound(filteredList);
 
     }

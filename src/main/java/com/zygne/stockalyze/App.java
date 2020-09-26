@@ -2,10 +2,12 @@ package com.zygne.stockalyze;
 
 import com.zygne.stockalyze.domain.model.*;
 import com.zygne.stockalyze.domain.utils.Timer;
+import com.zygne.stockalyze.presentation.printing.Color;
+import com.zygne.stockalyze.presentation.printing.ConsolePrinter;
+import com.zygne.stockalyze.presentation.printing.Printer;
 import com.zygne.stockalyze.presentation.presenter.base.DataPresenter;
 import com.zygne.stockalyze.presentation.presenter.base.PredictionPresenter;
 import com.zygne.stockalyze.presentation.presenter.implementation.DataPresenterImpl;
-import com.zygne.stockalyze.presentation.presenter.implementation.PredictionPresenterImpl;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -13,8 +15,28 @@ import java.util.List;
 
 public class App implements DataPresenter.View, PredictionPresenter.View {
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
+    public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+    public static final String ANSI_RED_BACKGROUND = "\u001B[41m";
+    public static final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+    public static final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+    public static final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
+    public static final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+    public static final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
+    public static final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
+
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
 
+    private final Printer printer = new ConsolePrinter();
     private int currentPrice = 0;
     private DataReport dataReport;
     private Timer timer = new Timer();
@@ -78,16 +100,20 @@ public class App implements DataPresenter.View, PredictionPresenter.View {
             topCount += e.volumePercentage;
         }
 
-        System.out.printf("%-55s%-4s%-6.2f%-40s%-6s\n", "Supply Zones", "Top Zones ", topCount, "% Volume", "Range");
-        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-        System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "|");
-        System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "|");
-        System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "|");
+        System.out.printf("%-60s%-9s%-6.2f%-45s%-6s\n", "Supply Zones", "Top Zones ", topCount, "% Volume", "Range");
+        printer.print( StringUtils.repeat("-", 182));
         System.out.println();
-        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        for(int i = 0; i< 3; i++){
+            System.out.printf("%-8s%-12s%-7s%-10s%-9s%6s%6s%-3s", "Price", "Volume", "Count", "Rel Vol", "Vol Pct", "P Rat", "Rank", " | ");
 
+        }
+        System.out.println();
+
+        printer.print( StringUtils.repeat("-", 182));
+        System.out.println();
 
         for (int i = 0; i < dataReport.filteredZones.size(); i++) {
+
 
             LiquidityZone lz = dataReport.filteredZones.get(i);
             LiquidityZone tz = null;
@@ -101,25 +127,70 @@ public class App implements DataPresenter.View, PredictionPresenter.View {
                 range = dataReport.range.get(i);
             }
 
-            System.out.printf("%-8s%-12s%-7s%-10.2f%-12.2f%5.2f%-2s", lz.price, lz.volume, lz.orderCount, lz.relativeVolume, lz.volumePercentage, lz.powerRatio, "|");
+            String zone = String.format("%-8s%-12s%-7s%-10.2f%-9.2f%6.2f%6d", lz.price, lz.volume, lz.orderCount, lz.relativeVolume, lz.volumePercentage, lz.powerRatio, lz.rank);
+
+            if(lz.rank < 10){
+                printer.setBackgroundColor(Color.CYAN);
+            }
+
+            if(lz.powerRatio < -0.49){
+                printer.setTextColor(Color.RED);
+            } else if(lz.powerRatio > 0.49){
+                printer.setTextColor(Color.BLUE);
+            }
+
+            printer.print(zone);
+            printer.print(" | ");
+
+            String topZone = "";
 
             if(tz != null){
-                System.out.printf("%-8s%-12s%-7s%-10.2f%-12.2f%5.2f%-2s", tz.price, tz.volume, tz.orderCount, tz.relativeVolume, tz.volumePercentage, tz.powerRatio, "|");
+                if(tz.powerRatio < -0.49){
+                    printer.setTextColor(Color.RED);
+                } else if(tz.powerRatio > 0.49){
+                    printer.setTextColor(Color.BLUE);
+                }
+                topZone = String.format("%-8s%-12s%-7s%-10.2f%-9.2f%6.2f%6d", tz.price, tz.volume, tz.orderCount, tz.relativeVolume, tz.volumePercentage, tz.powerRatio, tz.rank);
             } else {
-                System.out.printf("%-8s%-12s%-7s%-10s%-12s%-5s%-2s", "", "", "", "", "", "", "");
+                topZone = String.format("%-8s%-12s%-7s%-10s%-9s%6s%6s", "", "", "", "", "", "", "");
             }
 
+            printer.print(topZone);
+            printer.print(" | ");
+
+            String rangeText = "";
+
             if(range != null){
-                System.out.printf("%-8s%-12s%-7s%-10.2f%-12.2f%5.2f", range.price, range.volume, range.orderCount, range.relativeVolume, range.volumePercentage, range.powerRatio);
+                if(range.origin) {
+                    rangeText = StringUtils.center("<---------------->", 58);
+
+                } else {
+
+                    rangeText = String.format("%-8s%-12s%-7s%-10.2f%-9.2f%6.2f%6d", range.price, range.volume, range.orderCount, range.relativeVolume, range.volumePercentage, range.powerRatio, range.rank);
+
+                    if(range.rank < 10){
+                        printer.setBackgroundColor(Color.CYAN);
+                    }
+
+                    if(range.powerRatio < -0.49){
+                        printer.setTextColor(Color.RED);
+                    } else if(range.powerRatio > 0.49){
+                        printer.setTextColor(Color.BLUE);
+                    }
+
+                }
+            } else {
+                rangeText = String.format("%-8s%-12s%-7s%-10s%-9s%6s%6s", "", "", "", "", "", "", "");
             }
+
+            printer.print(rangeText);
 
             System.out.println();
 
         }
 
-        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        printer.print( StringUtils.repeat("-", 182));
         System.out.println();
-
 //        if (currentPrice > 0) {
 //            PredictionPresenter predictionPresenter = new PredictionPresenterImpl(this, dataReport);
 //            predictionPresenter.start();

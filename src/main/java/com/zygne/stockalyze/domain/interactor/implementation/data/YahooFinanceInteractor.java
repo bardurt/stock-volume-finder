@@ -36,8 +36,6 @@ public class YahooFinanceInteractor implements DataFetchInteractor {
         ticker = ticker.toUpperCase();
         String url = "https://query1.finance.yahoo.com/v7/finance/download/" + ticker + "?period1=" + timeFrom + "&period2=" + timeTo + "&interval=1d&events=history";
 
-        System.out.println("Fetching data from " + url);
-
         List<String> lines = new ArrayList<>();
         try {
             URL content = new URL(url);

@@ -5,6 +5,7 @@ import com.zygne.stockalyze.domain.model.LiquidityZone;
 import com.zygne.stockalyze.domain.model.Statistics;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LiquidityZoneFilterInteractorImpl implements LiquidityZoneFilterInteractor {
@@ -31,6 +32,10 @@ public class LiquidityZoneFilterInteractorImpl implements LiquidityZoneFilterInt
                 filtered.add(e);
             }
         }
+
+
+        filtered.sort(new LiquidityZone.PriceComparator());
+        Collections.reverse(filtered);
 
         callback.onLiquidityZonesFiltered(filtered);
     }

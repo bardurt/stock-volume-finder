@@ -69,6 +69,9 @@ public class RangeInteractorImpl implements RangeInteractor {
 
         }
 
+        LiquidityZone origin = new LiquidityZone(currentPrice-1, 0, 0);
+        origin.origin = true;
+        range.add(origin);
         range.sort(new LiquidityZone.PriceComparator());
         Collections.reverse(range);
 
