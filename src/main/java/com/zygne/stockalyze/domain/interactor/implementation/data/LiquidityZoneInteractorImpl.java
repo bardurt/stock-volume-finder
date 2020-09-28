@@ -15,7 +15,7 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
     private final List<VolumePriceGroup> data;
     private final Statistics statistics;
 
-    public LiquidityZoneInteractorImpl(Callback callback, List<VolumePriceGroup> data, Statistics statistics){
+    public LiquidityZoneInteractorImpl(Callback callback, List<VolumePriceGroup> data, Statistics statistics) {
         this.callback = callback;
         this.data = data;
         this.statistics = statistics;
@@ -26,7 +26,7 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
 
         List<LiquidityZone> formatted = new ArrayList<>();
 
-        for(VolumePriceGroup e : data){
+        for (VolumePriceGroup e : data) {
             LiquidityZone s = new LiquidityZone(e.price, e.totalSize, e.orderCount);
             s.relativeVolume = e.totalSize / statistics.mean;
             s.volumePercentage = (e.totalSize / (double) statistics.cumulativeVolume) * 100;
@@ -36,8 +36,11 @@ public class LiquidityZoneInteractorImpl implements LiquidityZoneInteractor {
         formatted.sort(new LiquidityZone.VolumeComparator());
         Collections.reverse(formatted);
 
-        for(int i = 0; i < formatted.size(); i++){
-            formatted.get(i).rank = i+1;
+        int size = formatted.size();
+
+        for (int i = 0; i < formatted.size(); i++) {
+            formatted.get(i).rank = i + 1;
+            formatted.get(i).percentile = ((i+1) / (double)size)*100;
         }
 
         callback.onLiquidityZonesCreated(formatted);

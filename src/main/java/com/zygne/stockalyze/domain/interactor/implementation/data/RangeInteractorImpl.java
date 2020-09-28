@@ -24,6 +24,8 @@ public class RangeInteractorImpl implements RangeInteractor {
     @Override
     public void execute() {
 
+        double rangeFilter = 30;
+
         List<LiquidityZone> range = new ArrayList<>();
 
         if(currentPrice == 0){
@@ -51,20 +53,24 @@ public class RangeInteractorImpl implements RangeInteractor {
 
         int count = 0;
         for(int i = originIndex; i > 0; i--){
-            range.add(data.get(i));
-            count++;
-            if(count > 10){
-                break;
+            if(data.get(i).percentile < rangeFilter) {
+                range.add(data.get(i));
+                count++;
+                if (count > 10) {
+                    break;
+                }
             }
 
         }
 
         count = 0;
         for(int i = originIndex +1; i < data.size(); i++){
-            range.add(data.get(i));
-            count++;
-            if(count > 10){
-                break;
+            if(data.get(i).percentile < rangeFilter) {
+                range.add(data.get(i));
+                count++;
+                if (count > 10) {
+                    break;
+                }
             }
 
         }

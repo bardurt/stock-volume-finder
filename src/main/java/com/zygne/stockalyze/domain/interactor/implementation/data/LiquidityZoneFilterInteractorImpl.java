@@ -23,16 +23,24 @@ public class LiquidityZoneFilterInteractorImpl implements LiquidityZoneFilterInt
     @Override
     public void execute() {
 
-        double limit = statistics.mean + statistics.standardDeviation;
+        double limit = 40;
 
         List<LiquidityZone> filtered = new ArrayList<>();
+        data.sort(new LiquidityZone.PriceComparator());
+        Collections.reverse(data);
 
-        for(LiquidityZone e : data){
-            if(e.volume > limit){
+        filtered.add(data.get(0));
+
+        data.sort(new LiquidityZone.VolumeComparator());
+        Collections.reverse(data);
+
+        for(int i = 1; i < data.size(); i++){
+            LiquidityZone e = data.get(i);
+
+            if(e.percentile < limit){
                 filtered.add(e);
             }
         }
-
 
         filtered.sort(new LiquidityZone.PriceComparator());
         Collections.reverse(filtered);

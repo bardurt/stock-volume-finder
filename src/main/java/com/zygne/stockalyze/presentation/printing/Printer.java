@@ -1,8 +1,9 @@
 package com.zygne.stockalyze.presentation.printing;
 
+import com.zygne.stockalyze.presentation.printing.command.PrinterCommand;
+
 public interface Printer {
 
-    void setBackgroundColor(Color color);
-    void setTextColor(Color color);
-    void print(String value);
+    void addCommand(PrinterCommand printerCommand);
+    void print();
 }

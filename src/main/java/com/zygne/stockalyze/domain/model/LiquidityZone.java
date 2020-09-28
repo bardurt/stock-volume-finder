@@ -12,6 +12,7 @@ public class LiquidityZone implements Comparable {
     public double powerRatio;
     public boolean origin = false;
     public int rank = 0;
+    public double percentile = 0.0d;
 
     public final String note = "";
 

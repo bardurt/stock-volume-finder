@@ -35,7 +35,7 @@ public class DataPresenterImpl implements DataPresenter,
         PowerZoneInteractor.Callback,
         PowerZoneFilterInteractor.Callback,
         RangeInteractor.Callback,
-        PowerRatioInteractor.Callback {
+        PowerRatioInteractor.Callback{
 
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/YYYY - HH:mm:ss");
