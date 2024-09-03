@@ -170,7 +170,7 @@ public class DataPresenterImpl implements DataPresenter,
     @Override
     public void onRangeGenerated(List<LiquidityZone> data) {
         dataReport.range = data;
-        new TopLiquidityZonesInteractorImpl(this, dataReport.zones, 50).execute();
+        new TopLiquidityZonesInteractorImpl(this, dataReport.zones, 10).execute();
     }
 
     @Override
