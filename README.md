@@ -1,5 +1,10 @@
 # Volume Finder
 
+Project that looks at `Volume At Price` for a given Equity.
+
+The project downloads data from `yahoo finance` and buckets all price by volume to see what prices have the highest volume.
+
+
 
 ```
 DataReport : TSLA - 03/09/2024 - 18:25:18
