@@ -4,6 +4,7 @@ Project that looks at `Volume At Price` for a given Equity.
 
 The project downloads data from `yahoo finance` and buckets all price by volume to see what prices have the highest volume.
 
+All the prices listed are in cents 1/100 USD.
 
 
 **Sample Output** for TSLA
