@@ -6,6 +6,7 @@ The project downloads data from `yahoo finance` and buckets all price by volume 
 
 
 
+**Sample Output** for TSLA
 ```
 DataReport : TSLA - 03/09/2024 - 18:25:18
 
