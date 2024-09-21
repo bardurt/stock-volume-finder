@@ -2,7 +2,14 @@
 
 Project that looks at `Volume At Price` for a given Equity.
 
-The project downloads data from `yahoo finance` and buckets all price by volume to see what prices have the highest volume.
+The project downloads data from `Alpha Vantage` and buckets all price by volume to see what prices have the highest volume.
+
+To use this project get a free **Api Key** from https://www.alphavantage.co/ and use the key as argument when running the project.
+
+```
+arg1 = symbol -> tsla
+arg2 = API KEY -> api key from alphavantage
+```
 
 All the prices listed are in cents 1/100 USD.
 
