@@ -6,17 +6,15 @@ public class LiquidityZone implements Comparable {
 
     public final int price;
     public final long volume;
-    public final int orderCount;
     public double volumePercentage = 0.0;
     public int rank = 0;
     public double percentile = 0.0d;
     public boolean visible = false;
     public boolean top = false;
 
-    public LiquidityZone(int price, long volume, int orderCount) {
+    public LiquidityZone(int price, long volume) {
         this.price = price;
         this.volume = volume;
-        this.orderCount = orderCount;
     }
 
     @Override

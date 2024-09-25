@@ -4,12 +4,10 @@ public class VolumePriceGroup implements Comparable{
 
     public final int price;
     public long totalSize;
-    public int orderCount;
 
     public VolumePriceGroup(int price, long totalSize){
         this.price = price;
         this.totalSize = totalSize;
-        this.orderCount = 1;
     }
 
     @Override

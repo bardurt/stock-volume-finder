@@ -1,6 +1,13 @@
 package com.zygne.stockalyze.domain.printing;
 
-import com.zygne.stockalyze.domain.printing.command.*;
+import com.zygne.stockalyze.domain.printing.command.AlignmentCommand;
+import com.zygne.stockalyze.domain.printing.command.BackgroundColorCommand;
+import com.zygne.stockalyze.domain.printing.command.ColumnCommand;
+import com.zygne.stockalyze.domain.printing.command.NewLineCommand;
+import com.zygne.stockalyze.domain.printing.command.PrinterCommand;
+import com.zygne.stockalyze.domain.printing.command.TextColorCommand;
+import com.zygne.stockalyze.domain.printing.command.TextCommand;
+import com.zygne.stockalyze.domain.printing.command.TextStyleCommand;
 
 public class ConsolePrinter implements Printer {
 
@@ -69,33 +76,15 @@ public class ConsolePrinter implements Printer {
 
     private void setBackgroundColor(Color color) {
         switch (color) {
-            case RED:
-                backgroundColor = BackgroundColors.RED;
-                break;
-            case BLACK:
-                backgroundColor = BackgroundColors.BLACK;
-                break;
-            case BLUE:
-                backgroundColor = BackgroundColors.BLUE;
-                break;
-            case YELLOW:
-                backgroundColor = BackgroundColors.YELLOW;
-                break;
-            case CYAN:
-                backgroundColor = BackgroundColors.CYAN;
-                break;
-            case PURPLE:
-                backgroundColor = BackgroundColors.PURPLE;
-                break;
-            case GREEN:
-                backgroundColor = BackgroundColors.GREEN;
-                break;
-            case WHITE:
-                backgroundColor = BackgroundColors.WHITE;
-                break;
-            case DEFAULT:
-                backgroundColor = "";
-                break;
+            case RED -> backgroundColor = ConsolePrinter.BackgroundColors.RED;
+            case BLACK -> backgroundColor = ConsolePrinter.BackgroundColors.BLACK;
+            case BLUE -> backgroundColor = ConsolePrinter.BackgroundColors.BLUE;
+            case YELLOW -> backgroundColor = ConsolePrinter.BackgroundColors.YELLOW;
+            case CYAN -> backgroundColor = ConsolePrinter.BackgroundColors.CYAN;
+            case PURPLE -> backgroundColor = ConsolePrinter.BackgroundColors.PURPLE;
+            case GREEN -> backgroundColor = ConsolePrinter.BackgroundColors.GREEN;
+            case WHITE -> backgroundColor = ConsolePrinter.BackgroundColors.WHITE;
+            case DEFAULT -> backgroundColor = "";
         }
     }
 
@@ -103,93 +92,39 @@ public class ConsolePrinter implements Printer {
 
         if(textStyle == TextStyle.DEFAULT) {
             switch (fontColor) {
-                case RED:
-                    textColor = TextColors.RED;
-                    break;
-                case BLACK:
-                    textColor = TextColors.BLACK;
-                    break;
-                case BLUE:
-                    textColor = TextColors.BLUE;
-                    break;
-                case YELLOW:
-                    textColor = TextColors.YELLOW;
-                    break;
-                case CYAN:
-                    textColor = TextColors.CYAN;
-                    break;
-                case PURPLE:
-                    textColor = TextColors.PURPLE;
-                    break;
-                case GREEN:
-                    textColor = TextColors.GREEN;
-                    break;
-                case WHITE:
-                    textColor = TextColors.WHITE;
-                    break;
-                case DEFAULT:
-                    textColor = "";
-                    break;
+                case RED -> textColor = ConsolePrinter.TextColors.RED;
+                case BLACK -> textColor = ConsolePrinter.TextColors.BLACK;
+                case BLUE -> textColor = ConsolePrinter.TextColors.BLUE;
+                case YELLOW -> textColor = ConsolePrinter.TextColors.YELLOW;
+                case CYAN -> textColor = ConsolePrinter.TextColors.CYAN;
+                case PURPLE -> textColor = ConsolePrinter.TextColors.PURPLE;
+                case GREEN -> textColor = ConsolePrinter.TextColors.GREEN;
+                case WHITE -> textColor = ConsolePrinter.TextColors.WHITE;
+                case DEFAULT -> textColor = "";
             }
         } else if(textStyle == TextStyle.UNDERLINE){
             switch (fontColor) {
-                case RED:
-                    textColor = FontStyle.RED_UNDERLINED;
-                    break;
-                case BLACK:
-                    textColor = FontStyle.BLACK_UNDERLINED;
-                    break;
-                case BLUE:
-                    textColor = FontStyle.BLUE_UNDERLINED;
-                    break;
-                case YELLOW:
-                    textColor = FontStyle.YELLOW_UNDERLINED;
-                    break;
-                case CYAN:
-                    textColor = FontStyle.CYAN_UNDERLINED;
-                    break;
-                case PURPLE:
-                    textColor = FontStyle.PURPLE_UNDERLINED;
-                    break;
-                case GREEN:
-                    textColor = FontStyle.GREEN_UNDERLINED;
-                    break;
-                case WHITE:
-                    textColor = FontStyle.WHITE_UNDERLINED;
-                    break;
-                case DEFAULT:
-                    textColor = "";
-                    break;
+                case RED -> textColor = ConsolePrinter.FontStyle.RED_UNDERLINED;
+                case BLACK -> textColor = ConsolePrinter.FontStyle.BLACK_UNDERLINED;
+                case BLUE -> textColor = ConsolePrinter.FontStyle.BLUE_UNDERLINED;
+                case YELLOW -> textColor = ConsolePrinter.FontStyle.YELLOW_UNDERLINED;
+                case CYAN -> textColor = ConsolePrinter.FontStyle.CYAN_UNDERLINED;
+                case PURPLE -> textColor = ConsolePrinter.FontStyle.PURPLE_UNDERLINED;
+                case GREEN -> textColor = ConsolePrinter.FontStyle.GREEN_UNDERLINED;
+                case WHITE -> textColor = ConsolePrinter.FontStyle.WHITE_UNDERLINED;
+                case DEFAULT -> textColor = "";
             }
         } else if(textStyle == TextStyle.BOLD){
             switch (fontColor) {
-                case RED:
-                    textColor = FontStyle.RED_BOLD;
-                    break;
-                case BLACK:
-                    textColor = FontStyle.BLACK_BOLD;
-                    break;
-                case BLUE:
-                    textColor = FontStyle.BLUE_BOLD;
-                    break;
-                case YELLOW:
-                    textColor = FontStyle.YELLOW_BOLD;
-                    break;
-                case CYAN:
-                    textColor = FontStyle.CYAN_BOLD;
-                    break;
-                case PURPLE:
-                    textColor = FontStyle.PURPLE_BOLD;
-                    break;
-                case GREEN:
-                    textColor = FontStyle.GREEN_BOLD;
-                    break;
-                case WHITE:
-                    textColor = FontStyle.WHITE_BOLD;
-                    break;
-                case DEFAULT:
-                    textColor = "";
-                    break;
+                case RED -> textColor = ConsolePrinter.FontStyle.RED_BOLD;
+                case BLACK -> textColor = ConsolePrinter.FontStyle.BLACK_BOLD;
+                case BLUE -> textColor = ConsolePrinter.FontStyle.BLUE_BOLD;
+                case YELLOW -> textColor = ConsolePrinter.FontStyle.YELLOW_BOLD;
+                case CYAN -> textColor = ConsolePrinter.FontStyle.CYAN_BOLD;
+                case PURPLE -> textColor = ConsolePrinter.FontStyle.PURPLE_BOLD;
+                case GREEN -> textColor = ConsolePrinter.FontStyle.GREEN_BOLD;
+                case WHITE -> textColor = ConsolePrinter.FontStyle.WHITE_BOLD;
+                case DEFAULT -> textColor = "";
             }
         }
     }
@@ -247,16 +182,10 @@ public class ConsolePrinter implements Printer {
         String format = backgroundColor + textColor;
 
         if(columnWidth > 0){
-            switch (alignment){
-                case LEFT:
-                    format += alignLeft(content, columnWidth);
-                    break;
-                case RIGHT:
-                    format += alignRight(content, columnWidth);
-                    break;
-                case CENTER:
-                    format += center(content, columnWidth);
-                    break;
+            switch (alignment) {
+                case LEFT -> format += alignLeft(content, columnWidth);
+                case RIGHT -> format += alignRight(content, columnWidth);
+                case CENTER -> format += center(content, columnWidth);
             }
 
         } else {
@@ -279,6 +208,10 @@ public class ConsolePrinter implements Printer {
 
         if(printerCommand instanceof TextCommand){
             content = ((TextCommand)printerCommand).getContent();
+        }
+
+        if(printerCommand instanceof com.zygne.stockalyze.domain.printing.command.RepeatCommand){
+            content = ((com.zygne.stockalyze.domain.printing.command.RepeatCommand)printerCommand).getContent();
         }
 
         if(printerCommand instanceof NewLineCommand){

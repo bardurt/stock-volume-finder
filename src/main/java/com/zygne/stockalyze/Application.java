@@ -1,8 +1,19 @@
 package com.zygne.stockalyze;
 
-import com.zygne.stockalyze.domain.model.*;
-import com.zygne.stockalyze.domain.printing.*;
-import com.zygne.stockalyze.domain.printing.command.*;
+import com.zygne.stockalyze.domain.model.LiquidityZone;
+import com.zygne.stockalyze.domain.model.VolumePriceGroup;
+import com.zygne.stockalyze.domain.printing.Alignment;
+import com.zygne.stockalyze.domain.printing.Color;
+import com.zygne.stockalyze.domain.printing.ConsolePrinter;
+import com.zygne.stockalyze.domain.printing.Printer;
+import com.zygne.stockalyze.domain.printing.TextStyle;
+import com.zygne.stockalyze.domain.printing.command.AlignmentCommand;
+import com.zygne.stockalyze.domain.printing.command.BackgroundColorCommand;
+import com.zygne.stockalyze.domain.printing.command.ColumnCommand;
+import com.zygne.stockalyze.domain.printing.command.NewLineCommand;
+import com.zygne.stockalyze.domain.printing.command.TextColorCommand;
+import com.zygne.stockalyze.domain.printing.command.TextCommand;
+import com.zygne.stockalyze.domain.printing.command.TextStyleCommand;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -32,7 +43,7 @@ public class Application {
                 System.out.println("Help");
                 System.out.println("arg1 = Asset name ex MSFT");
                 System.out.println("arg2 = API KEY from - www.alphavantage.co");
-                System.out.println("java -jar main.jar TSLA [API KEY]");
+                System.out.println("java -jar main.jar MSFT [API KEY]");
                 System.out.println("-----------------------------------------------------------------------------");
 
                 return;
@@ -149,7 +160,7 @@ public class Application {
         List<LiquidityZone> liquidityZones = new ArrayList<>();
 
         for (VolumePriceGroup e : groups) {
-            LiquidityZone s = new LiquidityZone(e.price, e.totalSize, e.orderCount);
+            LiquidityZone s = new LiquidityZone(e.price, e.totalSize);
             s.volumePercentage = (e.totalSize / (double) totalVolume) * 100;
             liquidityZones.add(s);
         }
@@ -367,7 +378,7 @@ public class Application {
         printer.addCommand(new NewLineCommand());
         printer.print();
 
-        printer.addCommand(new TextCommand(StringUtils.repeat("-", 89)));
+        printer.addCommand(new com.zygne.stockalyze.domain.printing.command.RepeatCommand("-", 89));
         printer.addCommand(new NewLineCommand());
         printer.print();
 
@@ -389,7 +400,7 @@ public class Application {
 
         }
 
-        printer.addCommand(new TextCommand(StringUtils.repeat("-", 89)));
+        printer.addCommand(new com.zygne.stockalyze.domain.printing.command.RepeatCommand("-", 89));
         printer.addCommand(new NewLineCommand());
         printer.addCommand(new NewLineCommand());
         printer.print();
