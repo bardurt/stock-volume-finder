@@ -19,38 +19,51 @@ public class LiquidityZone implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        int priceB = ((LiquidityZone)o).price;
+        int priceB = ((LiquidityZone) o).price;
 
-        if(price < priceB){
+        if (price < priceB) {
             return 1;
-        } else if(price == priceB){
+        } else if (price == priceB) {
             return 0;
         }
 
         return -1;
     }
 
-    public static final class VolumeComparator implements Comparator<LiquidityZone>{
+    public static final class VolumeComparator implements Comparator<LiquidityZone> {
+
+        private boolean ascending;
+
+        public VolumeComparator(boolean ascending) {
+            this.ascending = ascending;
+        }
 
         @Override
         public int compare(LiquidityZone o1, LiquidityZone o2) {
-            return Long.compare(o1.volume, o2.volume);
+            if (ascending) {
+                return Long.compare(o2.volume, o1.volume);
+            } else {
+                return Long.compare(o1.volume, o2.volume);
+            }
         }
     }
 
-    public static final class PriceComparator implements Comparator<LiquidityZone>{
+    public static final class PriceComparator implements Comparator<LiquidityZone> {
+
+        private boolean ascending;
+
+        public PriceComparator(boolean ascending) {
+            this.ascending = ascending;
+        }
 
         @Override
         public int compare(LiquidityZone o1, LiquidityZone o2) {
-            return Integer.compare(o1.price, o2.price);
+            if (ascending) {
+                return Integer.compare(o2.price, o1.price);
+            } else {
+                return Integer.compare(o1.price, o2.price);
+            }
         }
     }
 
-    public static final class RankComparator implements Comparator<LiquidityZone>{
-
-        @Override
-        public int compare(LiquidityZone o1, LiquidityZone o2) {
-            return Integer.compare(o1.rank, o2.rank);
-        }
-    }
 }

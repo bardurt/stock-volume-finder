@@ -2,6 +2,7 @@ package com.zygne.stockalyze;
 
 import com.zygne.stockalyze.domain.model.LiquidityZone;
 import com.zygne.stockalyze.domain.model.VolumePriceGroup;
+import com.zygne.stockalyze.domain.model.VolumePriceGroup.VolumeComparator;
 import com.zygne.stockalyze.domain.printing.Alignment;
 import com.zygne.stockalyze.domain.printing.Color;
 import com.zygne.stockalyze.domain.printing.ConsolePrinter;
@@ -20,7 +21,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +59,7 @@ public class Application {
         String apiKey = args[1];
 
         String url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=" + apiKey + "&outputsize=full&datatype=csv";
+        url = "https://raw.githubusercontent.com/bardurt/market_data/refs/heads/main/daily_RIOT.csv";
 
         List<String> lines = new ArrayList<>();
         try {
@@ -71,6 +72,7 @@ public class Application {
 
                 String data = inputStream.next();
 
+                // first item is header data
                 if (count > 1) {
                     lines.add(data);
                 }
@@ -96,17 +98,12 @@ public class Application {
             return;
         }
 
-        String[] tempArr;
-
         long totalVolume = 0;
-        int count = 0;
         Map<String, VolumePriceGroup> map = new HashMap<>();
+
         for (String line : lines) {
-
-            tempArr = line.split(",");
-
+            String[] tempArr = line.split(",");
             try {
-
                 long volume = Long.parseLong(tempArr[5]);
                 // Multiply by 100 to get the cent value
                 int open = (int) (Double.parseDouble(tempArr[1]) * 100);
@@ -149,37 +146,35 @@ public class Application {
                 }
 
             } catch (Exception e) {
-                System.out.println("Error at line " + count);
+                System.out.println("Error parsing data: " + e.getMessage());
             }
-
-            count++;
         }
 
         List<VolumePriceGroup> groups = new ArrayList<>(map.values());
-
+        groups.sort(new VolumeComparator(true));
         List<LiquidityZone> liquidityZones = new ArrayList<>();
 
-        for (VolumePriceGroup e : groups) {
-            LiquidityZone s = new LiquidityZone(e.price, e.totalSize);
-            s.volumePercentage = (e.totalSize / (double) totalVolume) * 100;
-            liquidityZones.add(s);
-        }
-
-        liquidityZones.sort(new LiquidityZone.VolumeComparator());
-        Collections.reverse(liquidityZones);
-
-        int size = liquidityZones.size();
+        int rank = 1;
+        int size = groups.size();
         double currentPercent = 0;
-        for (int i = 0; i < liquidityZones.size(); i++) {
-            liquidityZones.get(i).rank = i + 1;
-            liquidityZones.get(i).percentile = ((i + 1) / (double) size) * 100;
-            if (liquidityZones.get(i).percentile < FILTER_PERCENTILE) {
-                liquidityZones.get(i).visible = true;
+
+        for (VolumePriceGroup group : groups) {
+            LiquidityZone liquidityZone = new LiquidityZone(group.price, group.totalSize);
+            liquidityZone.volumePercentage = (group.totalSize / (double) totalVolume) * 100;
+
+            liquidityZone.rank = rank;
+            liquidityZone.percentile = ((rank / (double) size)) * 100;
+            if (liquidityZone.percentile < FILTER_PERCENTILE) {
+                liquidityZone.visible = true;
             }
-            currentPercent += liquidityZones.get(i).volumePercentage;
+            currentPercent += liquidityZone.volumePercentage;
             if (currentPercent < FILTER_TOP_ZONES) {
-                liquidityZones.get(i).top = true;
+                liquidityZone.top = true;
             }
+
+            liquidityZones.add(liquidityZone);
+
+            rank++;
         }
 
         print(symbol, liquidityZones);
@@ -200,9 +195,7 @@ public class Application {
         List<LiquidityZone> items = new ArrayList<>();
 
         if (!top) {
-            raw.sort(new LiquidityZone.PriceComparator());
-            Collections.reverse(raw);
-
+            raw.sort(new LiquidityZone.PriceComparator(true));
             for (LiquidityZone l : raw) {
                 if (l.visible) {
                     items.add(l);
@@ -210,9 +203,7 @@ public class Application {
             }
 
         } else {
-            raw.sort(new LiquidityZone.VolumeComparator());
-            Collections.reverse(raw);
-
+            raw.sort(new LiquidityZone.VolumeComparator(true));
             for (LiquidityZone l : raw) {
                 if (l.top) {
                     items.add(l);
