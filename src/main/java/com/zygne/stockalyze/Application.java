@@ -7,15 +7,25 @@ import com.zygne.stockalyze.domain.printing.command.*;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
 
 public class Application {
+
+    private static final float FILTER_PERCENTILE = 15.0f;
+    private static final float FILTER_TOP_ZONES = 5.0f;
 
     private final Printer printer = new ConsolePrinter();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
 
     public void start(String[] args) {
-       long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         if (args.length == 1) {
             if (args[0].equals("-h")) {
                 System.out.println("-----------------------------------------------------------------------------");
@@ -37,12 +47,7 @@ public class Application {
         String symbol = args[0];
         String apiKey = args[1];
 
-        System.out.println("Symbol: " + symbol);
-        System.out.println("ApiKey: " + apiKey);
-
         String url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=" + apiKey + "&outputsize=full&datatype=csv";
-        
-        System.out.println(url);
 
         List<String> lines = new ArrayList<>();
         try {
@@ -93,10 +98,10 @@ public class Application {
 
                 long volume = Long.parseLong(tempArr[5]);
                 // Multiply by 100 to get the cent value
-                int open = (int )( Double.parseDouble(tempArr[1]) * 100);
-                int high = (int )( Double.parseDouble(tempArr[2]) * 100);
-                int low = (int )( Double.parseDouble(tempArr[3]) * 100);
-                int close = (int )( Double.parseDouble(tempArr[4]) * 100);
+                int open = (int) (Double.parseDouble(tempArr[1]) * 100);
+                int high = (int) (Double.parseDouble(tempArr[2]) * 100);
+                int low = (int) (Double.parseDouble(tempArr[3]) * 100);
+                int close = (int) (Double.parseDouble(tempArr[4]) * 100);
 
                 totalVolume += volume;
 
@@ -141,72 +146,70 @@ public class Application {
 
         List<VolumePriceGroup> groups = new ArrayList<>(map.values());
 
-        Collections.sort(groups);
-        Collections.reverse(groups);
-
-        List<LiquidityZone> formatted = new ArrayList<>();
+        List<LiquidityZone> liquidityZones = new ArrayList<>();
 
         for (VolumePriceGroup e : groups) {
             LiquidityZone s = new LiquidityZone(e.price, e.totalSize, e.orderCount);
             s.volumePercentage = (e.totalSize / (double) totalVolume) * 100;
-            formatted.add(s);
+            liquidityZones.add(s);
         }
 
-        formatted.sort(new LiquidityZone.VolumeComparator());
-        Collections.reverse(formatted);
+        liquidityZones.sort(new LiquidityZone.VolumeComparator());
+        Collections.reverse(liquidityZones);
 
-        int size = formatted.size();
-
-        for (int i = 0; i < formatted.size(); i++) {
-            formatted.get(i).rank = i + 1;
-            formatted.get(i).percentile = ((i + 1) / (double) size) * 100;
-        }
-
-        List<LiquidityZone> filtered = new ArrayList<>();
-        formatted.sort(new LiquidityZone.PriceComparator());
-        Collections.reverse(formatted);
-
-        formatted.sort(new LiquidityZone.VolumeComparator());
-        Collections.reverse(formatted);
-
-        for (LiquidityZone e : formatted) {
-            if (e.percentile < 20) {
-                filtered.add(e);
-            }
-        }
-
-        filtered.sort(new LiquidityZone.PriceComparator());
-        Collections.reverse(filtered);
-
-        List<LiquidityZone> zones = new ArrayList<>(filtered);
-
-        zones.sort(new LiquidityZone.VolumeComparator());
-
-        Collections.reverse(zones);
-
-        List<LiquidityZone> topZones = new ArrayList<>();
-
+        int size = liquidityZones.size();
         double currentPercent = 0;
-
-        for(LiquidityZone e : zones){
-            topZones.add(e);
-            currentPercent += e.volumePercentage;
-            if (currentPercent > 10.0){
-                break;
+        for (int i = 0; i < liquidityZones.size(); i++) {
+            liquidityZones.get(i).rank = i + 1;
+            liquidityZones.get(i).percentile = ((i + 1) / (double) size) * 100;
+            if (liquidityZones.get(i).percentile < FILTER_PERCENTILE) {
+                liquidityZones.get(i).visible = true;
+            }
+            currentPercent += liquidityZones.get(i).volumePercentage;
+            if (currentPercent < FILTER_TOP_ZONES) {
+                liquidityZones.get(i).top = true;
             }
         }
 
-        topZones.sort(new LiquidityZone.RankComparator());
-
-        print(symbol,topZones, filtered );
+        print(symbol, liquidityZones);
 
         long end = System.currentTimeMillis() - startTime;
         System.out.println("Time to run " + end + "ms");
     }
 
-    private void print(String symbol, List<LiquidityZone> topZones, List<LiquidityZone> filteredZones) {
+    private void print(String symbol, List<LiquidityZone> items) {
         printInfoSection(symbol);
-        printTableSection(topZones, filteredZones);
+
+        List<LiquidityZone> zones = filterList(items, false);
+        List<LiquidityZone> top = filterList(items, true);
+        printTableSection(top, zones);
+    }
+
+    private List<LiquidityZone> filterList(List<LiquidityZone> raw, boolean top) {
+        List<LiquidityZone> items = new ArrayList<>();
+
+        if (!top) {
+            raw.sort(new LiquidityZone.PriceComparator());
+            Collections.reverse(raw);
+
+            for (LiquidityZone l : raw) {
+                if (l.visible) {
+                    items.add(l);
+                }
+            }
+
+        } else {
+            raw.sort(new LiquidityZone.VolumeComparator());
+            Collections.reverse(raw);
+
+            for (LiquidityZone l : raw) {
+                if (l.top) {
+                    items.add(l);
+                }
+            }
+        }
+
+        return items;
     }
 
     private void printInfoSection(String symbol) {
@@ -228,7 +231,7 @@ public class Application {
 
             printer.addCommand(new TextCommand("Vlm"));
             printer.addCommand(new ColumnCommand(16));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
+            printer.addCommand(new AlignmentCommand(Alignment.LEFT));
             printer.print();
 
             printer.addCommand(new TextCommand("VolPct"));
@@ -250,7 +253,6 @@ public class Application {
             printer.addCommand(new ColumnCommand(3));
             printer.addCommand(new AlignmentCommand(Alignment.CENTER));
             printer.print();
-
         }
     }
 
@@ -280,7 +282,7 @@ public class Application {
             printer.addCommand(textStyleCommand);
             printer.addCommand(new TextCommand(String.format("%,d", liquidityZone.volume)));
             printer.addCommand(new ColumnCommand(16));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
+            printer.addCommand(new AlignmentCommand(Alignment.LEFT));
             printer.print();
 
 
@@ -320,11 +322,6 @@ public class Application {
     }
 
     private void printTableSection(List<LiquidityZone> topZones, List<LiquidityZone> filteredZones) {
-        double topCount = 0;
-
-        for (LiquidityZone e : topZones) {
-            topCount += e.volumePercentage;
-        }
 
         printer.addCommand(new ColumnCommand(89));
         printer.addCommand(new BackgroundColorCommand(Color.BLACK));
@@ -335,7 +332,7 @@ public class Application {
 
         printer.addCommand(new BackgroundColorCommand(Color.BLACK));
         printer.addCommand(new TextColorCommand(Color.DEFAULT));
-        printer.addCommand(new TextCommand("Supply Zones"));
+        printer.addCommand(new TextCommand("Supply Zones, top " + String.format("%.2f", FILTER_PERCENTILE) + "% Volume"));
         printer.addCommand(new ColumnCommand(42));
         printer.addCommand(new AlignmentCommand(Alignment.LEFT));
         printer.print();
@@ -349,7 +346,7 @@ public class Application {
 
         printer.addCommand(new BackgroundColorCommand(Color.BLACK));
         printer.addCommand(new TextColorCommand(Color.DEFAULT));
-        printer.addCommand(new TextCommand("Top Zones " + String.format("%.2f", topCount) + "% Volume"));
+        printer.addCommand(new TextCommand("Top Zones " + String.format("%.2f", FILTER_TOP_ZONES) + "% of total Volume"));
         printer.addCommand(new ColumnCommand(44));
         printer.addCommand(new AlignmentCommand(Alignment.LEFT));
         printer.print();
@@ -396,5 +393,10 @@ public class Application {
         printer.addCommand(new NewLineCommand());
         printer.addCommand(new NewLineCommand());
         printer.print();
+    }
+
+    public static void main(String[] args) {
+        Application application = new Application();
+        application.start(args);
     }
 }
