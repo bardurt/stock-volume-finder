@@ -59,7 +59,6 @@ public class Application {
         String apiKey = args[1];
 
         String url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=" + apiKey + "&outputsize=full&datatype=csv";
-        url = "https://raw.githubusercontent.com/bardurt/market_data/refs/heads/main/daily_RIOT.csv";
 
         List<String> lines = new ArrayList<>();
         try {
