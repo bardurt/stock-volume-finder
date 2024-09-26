@@ -1,22 +1,24 @@
-package com.zygne.stockalyze;
+package com.zygne.volfinder;
 
-import com.zygne.stockalyze.domain.model.LiquidityZone;
-import com.zygne.stockalyze.domain.model.VolumePriceGroup;
-import com.zygne.stockalyze.domain.model.VolumePriceGroup.VolumeComparator;
-import com.zygne.stockalyze.domain.printing.Alignment;
-import com.zygne.stockalyze.domain.printing.Color;
-import com.zygne.stockalyze.domain.printing.ConsolePrinter;
-import com.zygne.stockalyze.domain.printing.Printer;
-import com.zygne.stockalyze.domain.printing.TextStyle;
-import com.zygne.stockalyze.domain.printing.command.AlignmentCommand;
-import com.zygne.stockalyze.domain.printing.command.BackgroundColorCommand;
-import com.zygne.stockalyze.domain.printing.command.ColumnCommand;
-import com.zygne.stockalyze.domain.printing.command.NewLineCommand;
-import com.zygne.stockalyze.domain.printing.command.TextColorCommand;
-import com.zygne.stockalyze.domain.printing.command.TextCommand;
-import com.zygne.stockalyze.domain.printing.command.TextStyleCommand;
+import com.zygne.volfinder.domain.model.LiquidityZone;
+import com.zygne.volfinder.domain.model.VolumePriceGroup;
+import com.zygne.volfinder.domain.model.VolumePriceGroup.VolumeComparator;
+import com.zygne.volfinder.domain.printing.Alignment;
+import com.zygne.volfinder.domain.printing.Color;
+import com.zygne.volfinder.domain.printing.ConsolePrinter;
+import com.zygne.volfinder.domain.printing.Printer;
+import com.zygne.volfinder.domain.printing.TextStyle;
+import com.zygne.volfinder.domain.printing.command.AlignmentCommand;
+import com.zygne.volfinder.domain.printing.command.BackgroundColorCommand;
+import com.zygne.volfinder.domain.printing.command.ColumnCommand;
+import com.zygne.volfinder.domain.printing.command.NewLineCommand;
+import com.zygne.volfinder.domain.printing.command.RepeatCommand;
+import com.zygne.volfinder.domain.printing.command.TextColorCommand;
+import com.zygne.volfinder.domain.printing.command.TextCommand;
+import com.zygne.volfinder.domain.printing.command.TextStyleCommand;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,7 +64,7 @@ public class Application {
 
         List<String> lines = new ArrayList<>();
         try {
-            URL content = new URL(url);
+            URL content = new URI(url).toURL();
             InputStream stream = content.openStream();
 
             Scanner inputStream = new Scanner(stream);
@@ -214,7 +216,6 @@ public class Application {
     }
 
     private void printInfoSection(String symbol) {
-
         printer.addCommand(new TextColorCommand(Color.DEFAULT));
         printer.addCommand(new TextCommand("Symbol : " + symbol + " - " + dateFormat.format(Calendar.getInstance().getTime())));
         printer.addCommand(new NewLineCommand());
@@ -224,13 +225,12 @@ public class Application {
 
     private void printTableHeader() {
         for (int i = 0; i < 2; i++) {
-
             printer.addCommand(new TextCommand("Price"));
             printer.addCommand(new ColumnCommand(6));
             printer.addCommand(new AlignmentCommand(Alignment.LEFT));
             printer.print();
 
-            printer.addCommand(new TextCommand("Vlm"));
+            printer.addCommand(new TextCommand("Volume"));
             printer.addCommand(new ColumnCommand(16));
             printer.addCommand(new AlignmentCommand(Alignment.LEFT));
             printer.print();
@@ -258,9 +258,7 @@ public class Application {
     }
 
     private void printTableEntry(LiquidityZone liquidityZone) {
-
         if (liquidityZone != null) {
-
             BackgroundColorCommand backgroundColorCommand = new BackgroundColorCommand(Color.DEFAULT);
             TextColorCommand textColorCommand = new TextColorCommand(Color.DEFAULT);
             TextStyleCommand textStyleCommand = new TextStyleCommand(TextStyle.DEFAULT);
@@ -286,7 +284,6 @@ public class Application {
             printer.addCommand(new AlignmentCommand(Alignment.LEFT));
             printer.print();
 
-
             printer.addCommand(backgroundColorCommand);
             printer.addCommand(textColorCommand);
             printer.addCommand(textStyleCommand);
@@ -310,7 +307,6 @@ public class Application {
             printer.addCommand(new ColumnCommand(6));
             printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
             printer.print();
-
         } else {
             printer.addCommand(new ColumnCommand(42));
             printer.print();
@@ -323,7 +319,6 @@ public class Application {
     }
 
     private void printTableSection(List<LiquidityZone> topZones, List<LiquidityZone> filteredZones) {
-
         printer.addCommand(new ColumnCommand(89));
         printer.addCommand(new BackgroundColorCommand(Color.BLACK));
         printer.print();
@@ -352,8 +347,6 @@ public class Application {
         printer.addCommand(new AlignmentCommand(Alignment.LEFT));
         printer.print();
 
-
-        printer.addCommand(new NewLineCommand());
         printer.print();
 
         printer.addCommand(new ColumnCommand(89));
@@ -368,12 +361,11 @@ public class Application {
         printer.addCommand(new NewLineCommand());
         printer.print();
 
-        printer.addCommand(new com.zygne.stockalyze.domain.printing.command.RepeatCommand("-", 89));
+        printer.addCommand(new RepeatCommand("-", 89));
         printer.addCommand(new NewLineCommand());
         printer.print();
 
         for (int i = 0; i < filteredZones.size(); i++) {
-
             LiquidityZone liquidityZone = filteredZones.get(i);
             LiquidityZone topZone = null;
 
@@ -387,10 +379,9 @@ public class Application {
             printer.print();
             printer.addCommand(new NewLineCommand());
             printer.print();
-
         }
 
-        printer.addCommand(new com.zygne.stockalyze.domain.printing.command.RepeatCommand("-", 89));
+        printer.addCommand(new RepeatCommand("-", 89));
         printer.addCommand(new NewLineCommand());
         printer.addCommand(new NewLineCommand());
         printer.print();

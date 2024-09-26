@@ -1,6 +1,6 @@
-package com.zygne.stockalyze.domain.printing.command;
+package com.zygne.volfinder.domain.printing.command;
 
-import com.zygne.stockalyze.domain.printing.Alignment;
+import com.zygne.volfinder.domain.printing.Alignment;
 
 public class AlignmentCommand extends PrinterCommand {
 

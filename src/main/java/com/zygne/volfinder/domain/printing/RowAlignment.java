@@ -1,4 +1,4 @@
-package com.zygne.stockalyze.domain.printing;
+package com.zygne.volfinder.domain.printing;
 
 public enum  RowAlignment {
     UP,

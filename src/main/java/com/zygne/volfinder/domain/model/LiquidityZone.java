@@ -1,4 +1,4 @@
-package com.zygne.stockalyze.domain.model;
+package com.zygne.volfinder.domain.model;
 
 import java.util.Comparator;
 
@@ -32,7 +32,7 @@ public class LiquidityZone implements Comparable {
 
     public static final class VolumeComparator implements Comparator<LiquidityZone> {
 
-        private boolean ascending;
+        private final boolean ascending;
 
         public VolumeComparator(boolean ascending) {
             this.ascending = ascending;

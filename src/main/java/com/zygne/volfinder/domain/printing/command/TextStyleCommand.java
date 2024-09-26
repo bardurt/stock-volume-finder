@@ -1,6 +1,6 @@
-package com.zygne.stockalyze.domain.printing.command;
+package com.zygne.volfinder.domain.printing.command;
 
-import com.zygne.stockalyze.domain.printing.TextStyle;
+import com.zygne.volfinder.domain.printing.TextStyle;
 
 public class TextStyleCommand extends PrinterCommand {
 

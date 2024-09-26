@@ -1,13 +1,13 @@
-package com.zygne.stockalyze.domain.printing;
+package com.zygne.volfinder.domain.printing;
 
-import com.zygne.stockalyze.domain.printing.command.AlignmentCommand;
-import com.zygne.stockalyze.domain.printing.command.BackgroundColorCommand;
-import com.zygne.stockalyze.domain.printing.command.ColumnCommand;
-import com.zygne.stockalyze.domain.printing.command.NewLineCommand;
-import com.zygne.stockalyze.domain.printing.command.PrinterCommand;
-import com.zygne.stockalyze.domain.printing.command.TextColorCommand;
-import com.zygne.stockalyze.domain.printing.command.TextCommand;
-import com.zygne.stockalyze.domain.printing.command.TextStyleCommand;
+import com.zygne.volfinder.domain.printing.command.AlignmentCommand;
+import com.zygne.volfinder.domain.printing.command.BackgroundColorCommand;
+import com.zygne.volfinder.domain.printing.command.ColumnCommand;
+import com.zygne.volfinder.domain.printing.command.NewLineCommand;
+import com.zygne.volfinder.domain.printing.command.PrinterCommand;
+import com.zygne.volfinder.domain.printing.command.TextColorCommand;
+import com.zygne.volfinder.domain.printing.command.TextCommand;
+import com.zygne.volfinder.domain.printing.command.TextStyleCommand;
 
 public class ConsolePrinter implements Printer {
 
@@ -210,8 +210,8 @@ public class ConsolePrinter implements Printer {
             content = ((TextCommand)printerCommand).getContent();
         }
 
-        if(printerCommand instanceof com.zygne.stockalyze.domain.printing.command.RepeatCommand){
-            content = ((com.zygne.stockalyze.domain.printing.command.RepeatCommand)printerCommand).getContent();
+        if(printerCommand instanceof com.zygne.volfinder.domain.printing.command.RepeatCommand){
+            content = ((com.zygne.volfinder.domain.printing.command.RepeatCommand)printerCommand).getContent();
         }
 
         if(printerCommand instanceof NewLineCommand){

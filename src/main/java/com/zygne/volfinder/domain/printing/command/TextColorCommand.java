@@ -1,6 +1,6 @@
-package com.zygne.stockalyze.domain.printing.command;
+package com.zygne.volfinder.domain.printing.command;
 
-import com.zygne.stockalyze.domain.printing.Color;
+import com.zygne.volfinder.domain.printing.Color;
 
 public class TextColorCommand extends ColorCommand {
     public TextColorCommand(Color color) {

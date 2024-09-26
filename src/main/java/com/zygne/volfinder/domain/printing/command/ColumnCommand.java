@@ -1,4 +1,4 @@
-package com.zygne.stockalyze.domain.printing.command;
+package com.zygne.volfinder.domain.printing.command;
 
 public class ColumnCommand extends PrinterCommand {
 
