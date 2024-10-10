@@ -1,8 +1,5 @@
 package com.zygne.volfinder;
 
-import com.zygne.volfinder.domain.model.LiquidityZone;
-import com.zygne.volfinder.domain.model.VolumePriceGroup;
-import com.zygne.volfinder.domain.model.VolumePriceGroup.VolumeComparator;
 import com.zygne.volfinder.domain.printing.Alignment;
 import com.zygne.volfinder.domain.printing.Color;
 import com.zygne.volfinder.domain.printing.ConsolePrinter;
@@ -18,24 +15,19 @@ import com.zygne.volfinder.domain.printing.command.TextCommand;
 import com.zygne.volfinder.domain.printing.command.TextStyleCommand;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-
 
 public class Application {
 
-    private static final float FILTER_PERCENTILE = 15.0f;
-    private static final float FILTER_TOP_ZONES = 5.0f;
-
     private final Printer printer = new ConsolePrinter();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy - HH:mm:ss");
+
+    private final int MAX_LENGTH = 1000000;
+
+    private final long[] priceArray = new long[MAX_LENGTH];
 
     public void start(String[] args) {
         long startTime = System.currentTimeMillis();
@@ -62,9 +54,9 @@ public class Application {
 
         String url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + symbol + "&apikey=" + apiKey + "&outputsize=full&datatype=csv";
 
-        List<String> lines = new ArrayList<>();
+        long totalVolume = 0;
         try {
-            URL content = new URI(url).toURL();
+            URL content = new java.net.URI(url).toURL();
             InputStream stream = content.openStream();
 
             Scanner inputStream = new Scanner(stream);
@@ -75,9 +67,25 @@ public class Application {
 
                 // first item is header data
                 if (count > 1) {
-                    lines.add(data);
-                }
+                    String[] tempArr = data.split(",");
+                    try {
+                        long volume = Long.parseLong(tempArr[5]);
+                        totalVolume += volume;
+                        // Multiply by 100 to get the cent value
+                        int open = (int) (Double.parseDouble(tempArr[1]) * 100);
+                        int high = (int) (Double.parseDouble(tempArr[2]) * 100);
+                        int low = (int) (Double.parseDouble(tempArr[3]) * 100);
+                        int close = (int) (Double.parseDouble(tempArr[4]) * 100);
 
+                        priceArray[open] += (long) (volume * 0.3);
+                        priceArray[high] += (long) (volume * 0.2);
+                        priceArray[low] += (long) (volume * 0.2);
+                        priceArray[close] += (long) (volume * 0.3);
+
+                    } catch (Exception e) {
+                        System.out.println("Error parsing data: " + e.getMessage());
+                    }
+                }
                 count++;
             }
             inputStream.close();
@@ -86,306 +94,72 @@ public class Application {
             return;
         }
 
-        if (lines.isEmpty()) {
-            System.out.println("Could not fetch data from : " + url);
-            return;
-        }
 
-        if (lines.size() < 50) {
-            for (String s : lines) {
-                System.out.print(s + " ");
-            }
-            System.out.println();
-            return;
-        }
-
-        long totalVolume = 0;
-        Map<String, VolumePriceGroup> map = new HashMap<>();
-
-        for (String line : lines) {
-            String[] tempArr = line.split(",");
-            try {
-                long volume = Long.parseLong(tempArr[5]);
-                // Multiply by 100 to get the cent value
-                int open = (int) (Double.parseDouble(tempArr[1]) * 100);
-                int high = (int) (Double.parseDouble(tempArr[2]) * 100);
-                int low = (int) (Double.parseDouble(tempArr[3]) * 100);
-                int close = (int) (Double.parseDouble(tempArr[4]) * 100);
-
-                totalVolume += volume;
-
-                String tag1 = "p" + open;
-
-                if (map.get(tag1) != null) {
-                    map.get(tag1).totalSize += volume * 0.3;
-                } else {
-                    map.put(tag1, new VolumePriceGroup(open, (long) (volume * 0.3)));
-                }
-
-                String tag2 = "p" + high;
-
-                if (map.get(tag2) != null) {
-                    map.get(tag2).totalSize += volume * 0.2;
-                } else {
-                    map.put(tag2, new VolumePriceGroup(high, (long) (volume * 0.2)));
-                }
-
-                String tag3 = "p" + high;
-
-                if (map.get(tag3) != null) {
-                    map.get(tag3).totalSize += volume * 0.2;
-                } else {
-                    map.put(tag3, new VolumePriceGroup(low, (long) (volume * 0.2)));
-                }
-
-                String tag4 = "p" + close;
-
-                if (map.get(tag4) != null) {
-                    map.get(tag4).totalSize += volume * 0.3;
-                } else {
-                    map.put(tag4, new VolumePriceGroup(close, (long) (volume * 0.3)));
-                }
-
-            } catch (Exception e) {
-                System.out.println("Error parsing data: " + e.getMessage());
-            }
-        }
-
-        List<VolumePriceGroup> groups = new ArrayList<>(map.values());
-        groups.sort(new VolumeComparator(true));
-        List<LiquidityZone> liquidityZones = new ArrayList<>();
-
-        int rank = 1;
-        int size = groups.size();
-        double currentPercent = 0;
-
-        for (VolumePriceGroup group : groups) {
-            LiquidityZone liquidityZone = new LiquidityZone(group.price, group.totalSize);
-            liquidityZone.volumePercentage = (group.totalSize / (double) totalVolume) * 100;
-
-            liquidityZone.rank = rank;
-            liquidityZone.percentile = ((rank / (double) size)) * 100;
-            if (liquidityZone.percentile < FILTER_PERCENTILE) {
-                liquidityZone.visible = true;
-            }
-            currentPercent += liquidityZone.volumePercentage;
-            if (currentPercent < FILTER_TOP_ZONES) {
-                liquidityZone.top = true;
-            }
-
-            liquidityZones.add(liquidityZone);
-
-            rank++;
-        }
-
-        print(symbol, liquidityZones);
+        // filters for getting prices that represent a % of total volume
+        long filter = (long) (totalVolume * 0.001);
+        long topVolume = (long) (totalVolume * 0.002);
 
         long end = System.currentTimeMillis() - startTime;
         System.out.println("Time to run " + end + "ms");
-    }
 
-    private void print(String symbol, List<LiquidityZone> items) {
-        printInfoSection(symbol);
-
-        List<LiquidityZone> zones = filterList(items, false);
-        List<LiquidityZone> top = filterList(items, true);
-        printTableSection(top, zones);
-    }
-
-    private List<LiquidityZone> filterList(List<LiquidityZone> raw, boolean top) {
-        List<LiquidityZone> items = new ArrayList<>();
-
-        if (!top) {
-            raw.sort(new LiquidityZone.PriceComparator(true));
-            for (LiquidityZone l : raw) {
-                if (l.visible) {
-                    items.add(l);
-                }
-            }
-
-        } else {
-            raw.sort(new LiquidityZone.VolumeComparator(true));
-            for (LiquidityZone l : raw) {
-                if (l.top) {
-                    items.add(l);
-                }
-            }
-        }
-
-        return items;
-    }
-
-    private void printInfoSection(String symbol) {
         printer.addCommand(new TextColorCommand(Color.DEFAULT));
         printer.addCommand(new TextCommand("Symbol : " + symbol + " - " + dateFormat.format(Calendar.getInstance().getTime())));
         printer.addCommand(new NewLineCommand());
         printer.addCommand(new NewLineCommand());
         printer.print();
-    }
 
-    private void printTableHeader() {
-        for (int i = 0; i < 2; i++) {
-            printer.addCommand(new TextCommand("Price"));
-            printer.addCommand(new ColumnCommand(6));
-            printer.addCommand(new AlignmentCommand(Alignment.LEFT));
-            printer.print();
+        printer.addCommand(new TextCommand("Price"));
+        printer.addCommand(new ColumnCommand(6));
+        printer.addCommand(new AlignmentCommand(Alignment.LEFT));
+        printer.print();
 
-            printer.addCommand(new TextCommand("Volume"));
-            printer.addCommand(new ColumnCommand(16));
-            printer.addCommand(new AlignmentCommand(Alignment.LEFT));
-            printer.print();
+        printer.addCommand(new TextCommand("Volume"));
+        printer.addCommand(new ColumnCommand(16));
+        printer.addCommand(new AlignmentCommand(Alignment.LEFT));
+        printer.print();
 
-            printer.addCommand(new TextCommand("VolPct"));
-            printer.addCommand(new ColumnCommand(7));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
-            printer.print();
+        printer.addCommand(new NewLineCommand());
+        printer.print();
 
-            printer.addCommand(new TextCommand("Rank"));
-            printer.addCommand(new ColumnCommand(7));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
-            printer.print();
+        printer.addCommand(new RepeatCommand("-", 22));
+        printer.print();
 
-            printer.addCommand(new TextCommand("Ptile"));
-            printer.addCommand(new ColumnCommand(6));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
-            printer.print();
+        printer.addCommand(new NewLineCommand());
+        printer.print();
 
-            printer.addCommand(new TextCommand("|"));
-            printer.addCommand(new ColumnCommand(3));
-            printer.addCommand(new AlignmentCommand(Alignment.CENTER));
-            printer.print();
-        }
-    }
-
-    private void printTableEntry(LiquidityZone liquidityZone) {
-        if (liquidityZone != null) {
-            BackgroundColorCommand backgroundColorCommand = new BackgroundColorCommand(Color.DEFAULT);
+        for(int i = MAX_LENGTH-1; i > 0; i--){
+            var backgroundColorCommand = new BackgroundColorCommand(Color.DEFAULT);
             TextColorCommand textColorCommand = new TextColorCommand(Color.DEFAULT);
-            TextStyleCommand textStyleCommand = new TextStyleCommand(TextStyle.DEFAULT);
+            var textStyleCommand = new TextStyleCommand(TextStyle.DEFAULT);
 
-            if (liquidityZone.percentile <= 3) {
-                backgroundColorCommand = new BackgroundColorCommand(Color.GREEN);
+            if(priceArray[i] > filter) {
+                if(priceArray[i] >= topVolume){
+                    backgroundColorCommand = new BackgroundColorCommand(Color.GREEN);
+                    textColorCommand = new TextColorCommand(Color.BLACK);
+                }
+
                 printer.addCommand(backgroundColorCommand);
+                printer.addCommand(textColorCommand);
+                printer.addCommand(textStyleCommand);
+                printer.addCommand(new TextCommand("" + i));
+                printer.addCommand(new ColumnCommand(6));
+                printer.addCommand(new AlignmentCommand(Alignment.LEFT));
+                printer.print();
+
+                printer.addCommand(backgroundColorCommand);
+                printer.addCommand(textColorCommand);
+                printer.addCommand(textStyleCommand);
+                printer.addCommand(new TextCommand(String.format("%,d", priceArray[i])));
+                printer.addCommand(new ColumnCommand(16));
+                printer.addCommand(new AlignmentCommand(Alignment.LEFT));
+                printer.print();
+
+                printer.addCommand(new NewLineCommand());
+                printer.print();
             }
-
-            printer.addCommand(backgroundColorCommand);
-            printer.addCommand(textColorCommand);
-            printer.addCommand(textStyleCommand);
-            printer.addCommand(new TextCommand("" + liquidityZone.price));
-            printer.addCommand(new ColumnCommand(6));
-            printer.addCommand(new AlignmentCommand(Alignment.LEFT));
-            printer.print();
-
-            printer.addCommand(backgroundColorCommand);
-            printer.addCommand(textColorCommand);
-            printer.addCommand(textStyleCommand);
-            printer.addCommand(new TextCommand(String.format("%,d", liquidityZone.volume)));
-            printer.addCommand(new ColumnCommand(16));
-            printer.addCommand(new AlignmentCommand(Alignment.LEFT));
-            printer.print();
-
-            printer.addCommand(backgroundColorCommand);
-            printer.addCommand(textColorCommand);
-            printer.addCommand(textStyleCommand);
-            printer.addCommand(new TextCommand(String.format("%.2f", liquidityZone.volumePercentage)));
-            printer.addCommand(new ColumnCommand(7));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
-            printer.print();
-
-            printer.addCommand(backgroundColorCommand);
-            printer.addCommand(textColorCommand);
-            printer.addCommand(textStyleCommand);
-            printer.addCommand(new TextCommand("" + liquidityZone.rank));
-            printer.addCommand(new ColumnCommand(7));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
-            printer.print();
-
-            printer.addCommand(backgroundColorCommand);
-            printer.addCommand(textColorCommand);
-            printer.addCommand(textStyleCommand);
-            printer.addCommand(new TextCommand(String.format("%.2f", liquidityZone.percentile)));
-            printer.addCommand(new ColumnCommand(6));
-            printer.addCommand(new AlignmentCommand(Alignment.RIGHT));
-            printer.print();
-        } else {
-            printer.addCommand(new ColumnCommand(42));
-            printer.print();
         }
-
-        printer.addCommand(new TextCommand("|"));
-        printer.addCommand(new ColumnCommand(3));
-        printer.addCommand(new AlignmentCommand(Alignment.CENTER));
-        printer.print();
     }
 
-    private void printTableSection(List<LiquidityZone> topZones, List<LiquidityZone> filteredZones) {
-        printer.addCommand(new ColumnCommand(89));
-        printer.addCommand(new BackgroundColorCommand(Color.BLACK));
-        printer.print();
-
-        printer.addCommand(new NewLineCommand());
-        printer.print();
-
-        printer.addCommand(new BackgroundColorCommand(Color.BLACK));
-        printer.addCommand(new TextColorCommand(Color.DEFAULT));
-        printer.addCommand(new TextCommand("Supply Zones, top " + String.format("%.2f", FILTER_PERCENTILE) + "% Volume"));
-        printer.addCommand(new ColumnCommand(42));
-        printer.addCommand(new AlignmentCommand(Alignment.LEFT));
-        printer.print();
-
-        printer.addCommand(new BackgroundColorCommand(Color.BLACK));
-        printer.addCommand(new TextColorCommand(Color.DEFAULT));
-        printer.addCommand(new TextCommand("|"));
-        printer.addCommand(new ColumnCommand(3));
-        printer.addCommand(new AlignmentCommand(Alignment.CENTER));
-        printer.print();
-
-        printer.addCommand(new BackgroundColorCommand(Color.BLACK));
-        printer.addCommand(new TextColorCommand(Color.DEFAULT));
-        printer.addCommand(new TextCommand("Top Zones " + String.format("%.2f", FILTER_TOP_ZONES) + "% of total Volume"));
-        printer.addCommand(new ColumnCommand(44));
-        printer.addCommand(new AlignmentCommand(Alignment.LEFT));
-        printer.print();
-
-        printer.print();
-
-        printer.addCommand(new ColumnCommand(89));
-        printer.addCommand(new BackgroundColorCommand(Color.BLACK));
-        printer.print();
-
-        printer.addCommand(new NewLineCommand());
-        printer.print();
-
-        printTableHeader();
-
-        printer.addCommand(new NewLineCommand());
-        printer.print();
-
-        printer.addCommand(new RepeatCommand("-", 89));
-        printer.addCommand(new NewLineCommand());
-        printer.print();
-
-        for (int i = 0; i < filteredZones.size(); i++) {
-            LiquidityZone liquidityZone = filteredZones.get(i);
-            LiquidityZone topZone = null;
-
-            if (i < topZones.size() - 1) {
-                topZone = topZones.get(i);
-            }
-
-            printTableEntry(liquidityZone);
-            printTableEntry(topZone);
-
-            printer.print();
-            printer.addCommand(new NewLineCommand());
-            printer.print();
-        }
-
-        printer.addCommand(new RepeatCommand("-", 89));
-        printer.addCommand(new NewLineCommand());
-        printer.addCommand(new NewLineCommand());
-        printer.print();
-    }
 
     public static void main(String[] args) {
         Application application = new Application();
